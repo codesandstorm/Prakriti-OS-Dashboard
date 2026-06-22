@@ -4,6 +4,12 @@ import type { Officer, Incident, UserRole, AppSettings, AppNotification, Dashboa
 import { mpOfficers, mpIncidents } from '../services/mpMockData';
 import { initialOfficerTasks, initialAuditLogs } from '../services/officerWorkflowMock';
 
+export interface ToastMessage {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
+}
+
 interface CommandCenterState {
   // Theme & Settings
   settings: AppSettings;
@@ -129,12 +135,25 @@ interface CommandCenterState {
   setDashboardLoading: (loading: boolean) => void;
 
   // AI Scenario Simulation variables
-  policyBudgetModifier: number;
-  industrialEnforcement: number;
-  reforestationTarget: number;
-  setPolicyBudgetModifier: (val: number) => void;
-  setIndustrialEnforcement: (val: number) => void;
-  setReforestationTarget: (val: number) => void;
+  simulationParams: {
+    treePlantation: number;
+    groundwaterExtraction: number;
+    rainwaterHarvesting: number;
+    inspectionFrequency: number;
+    banStubbleBurning: boolean;
+    promoteDripIrrigation: boolean;
+    afforestationBudget: number;
+    officerDeployment: number;
+    newEnvironmentalScheme: boolean;
+    carbonCreditParticipation: boolean;
+  };
+  setSimulationParam: (key: string, value: number | boolean) => void;
+  setAllSimulationParams: (params: any) => void;
+  
+  simulationResult: any | null;
+  setSimulationResult: (result: any | null) => void;
+  isSimulating: boolean;
+  setIsSimulating: (loading: boolean) => void;
 
   // Government Analytics states
   analyticsTab: 'schemes' | 'budget' | 'pensions' | 'incentives';
@@ -145,9 +164,21 @@ interface CommandCenterState {
   // Officer Workflows
   officerTasks: OfficerTask[];
   addOfficerTask: (task: OfficerTask) => void;
+  removeOfficerTask: (taskId: string) => void;
   updateOfficerTaskStatus: (taskId: string, status: OfficerTask['status']) => void;
   officerAudits: AuditTrailLog[];
   addOfficerAudit: (audit: AuditTrailLog) => void;
+
+  // New Final Polish Business Logic States
+  collectorNotes: string;
+  setCollectorNotes: (notes: string) => void;
+  globalToasts: ToastMessage[];
+  addToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  removeToast: (id: string) => void;
+
+  resolveIncident: (id: string) => void;
+  escalateIncident: (id: string) => void;
+  assignIncident: (id: string, officerId: string) => void;
 }
 
 const initialNotifications: AppNotification[] = [
@@ -231,7 +262,32 @@ export const useStore = create<CommandCenterState>()(
 
       // Authentication & Role
       currentRole: 'Collector',
-      setCurrentRole: (role) => set({ currentRole: role }),
+      setCurrentRole: (role) => set((state) => {
+        // RBAC Sync logic
+        let nextPage = state.currentPage;
+        let newFilters = { ...state.dashboardFilters };
+        let newSearchQuery = '';
+
+        if (role === 'Officer') {
+          nextPage = 'officers';
+        } else if (role === 'Research') {
+          nextPage = 'mission';
+        } else if (role === 'Collector' || role === 'Admin') {
+          nextPage = 'dashboard';
+        }
+
+        state.addToast(`Switched session context to: ${role}`, 'info');
+
+        return { 
+          currentRole: role,
+          currentPage: nextPage,
+          dashboardFilters: newFilters,
+          searchQuery: newSearchQuery,
+          selectedOfficer: null,
+          selectedVillage: null,
+          isDrawerOpen: false
+        };
+      }),
 
       // Connection Status & Timer
       isOnline: true,
@@ -416,12 +472,27 @@ export const useStore = create<CommandCenterState>()(
       setDashboardLoading: (loading) => set({ isDashboardLoading: loading }),
 
       // AI Scenario Simulation initial values & setters
-      policyBudgetModifier: 40,
-      industrialEnforcement: 50,
-      reforestationTarget: 30,
-      setPolicyBudgetModifier: (val) => set({ policyBudgetModifier: val }),
-      setIndustrialEnforcement: (val) => set({ industrialEnforcement: val }),
-      setReforestationTarget: (val) => set({ reforestationTarget: val }),
+      simulationParams: {
+        treePlantation: 50,
+        groundwaterExtraction: 50,
+        rainwaterHarvesting: 50,
+        inspectionFrequency: 50,
+        banStubbleBurning: false,
+        promoteDripIrrigation: false,
+        afforestationBudget: 50,
+        officerDeployment: 50,
+        newEnvironmentalScheme: false,
+        carbonCreditParticipation: false,
+      },
+      setSimulationParam: (key, value) => set((state) => ({
+        simulationParams: { ...state.simulationParams, [key]: value }
+      })),
+      setAllSimulationParams: (params) => set({ simulationParams: params }),
+      
+      simulationResult: null,
+      setSimulationResult: (result) => set({ simulationResult: result }),
+      isSimulating: false,
+      setIsSimulating: (loading) => set({ isSimulating: loading }),
 
       // Government Analytics initial values & setters
       analyticsTab: 'schemes',
@@ -432,11 +503,37 @@ export const useStore = create<CommandCenterState>()(
       // Officer Workflows
       officerTasks: initialOfficerTasks,
       addOfficerTask: (task) => set((state) => ({ officerTasks: [...state.officerTasks, task] })),
+      removeOfficerTask: (taskId) => set((state) => ({ officerTasks: state.officerTasks.filter(t => t.id !== taskId) })),
       updateOfficerTaskStatus: (taskId, status) => set((state) => ({
         officerTasks: state.officerTasks.map(t => t.id === taskId ? { ...t, status } : t)
       })),
       officerAudits: initialAuditLogs,
-      addOfficerAudit: (audit) => set((state) => ({ officerAudits: [...state.officerAudits, audit] }))
+      addOfficerAudit: (audit) => set((state) => ({ officerAudits: [audit, ...state.officerAudits] })),
+
+      // Business Logic Mutations
+      collectorNotes: '',
+      setCollectorNotes: (notes) => set({ collectorNotes: notes }),
+      
+      globalToasts: [],
+      addToast: (message, type = 'info') => set((state) => {
+        const id = `toast-${Date.now()}`;
+        // Auto-remove handled in ToastContainer or simple timeout here
+        setTimeout(() => {
+          set((s) => ({ globalToasts: s.globalToasts.filter(t => t.id !== id) }));
+        }, 4000);
+        return { globalToasts: [...state.globalToasts, { id, message, type }] };
+      }),
+      removeToast: (id) => set((state) => ({ globalToasts: state.globalToasts.filter(t => t.id !== id) })),
+
+      resolveIncident: (id) => set((state) => ({
+        incidents: state.incidents.filter(i => i.id !== id)
+      })),
+      escalateIncident: (id) => set((state) => ({
+        incidents: state.incidents.map(i => i.id === id ? { ...i, severity: 'CRITICAL' } : i)
+      })),
+      assignIncident: (id, officerId) => set((state) => ({
+        incidents: state.incidents.map(i => i.id === id ? { ...i, teamDeployed: officerId } : i)
+      }))
     }),
     {
       name: 'prakriti-command-center-store',
@@ -452,7 +549,9 @@ export const useStore = create<CommandCenterState>()(
         activeLayers: state.activeLayers,
         selectedVillageId: state.selectedVillageId,
         officerTasks: state.officerTasks,
-        officerAudits: state.officerAudits
+        officerAudits: state.officerAudits,
+        collectorNotes: state.collectorNotes,
+        incidents: state.incidents
       })
     }
   )

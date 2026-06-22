@@ -11,7 +11,9 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
     notifications, 
     markNotificationRead, 
     markAllNotificationsRead, 
-    archiveNotification 
+    archiveNotification,
+    setCurrentPage,
+    addToast
   } = useStore();
 
   const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'critical'>('all');
@@ -95,7 +97,12 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
             filteredNotifs.map((notif) => (
               <div 
                 key={notif.id}
-                onClick={() => markNotificationRead(notif.id)}
+                onClick={() => {
+                  markNotificationRead(notif.id);
+                  setCurrentPage('dashboard');
+                  addToast(`Navigating to event: ${notif.title}`, 'info');
+                  onClose();
+                }}
                 className={`p-3 flex gap-3 cursor-pointer transition-colors hover:bg-surface-container-low ${
                   !notif.read ? 'bg-primary-container/5 font-semibold' : ''
                 }`}

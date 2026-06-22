@@ -1,413 +1,406 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from '../hooks/useStore';
-import { aiModelForecasts, calculateScenarioSimulation } from '../services/aiMockData';
+import { PowerBiChartCard } from '../components/PowerBiChartCard';
+import {
+  GroundwaterForecastChart,
+  CarbonProgressChart, VegetationGrowthChart,
+  EnvironmentalRiskForecastChart
+} from '../components/PowerBiCharts';
+import { runDeterministicSimulation } from '../services/simulationEngine';
 
 export const Analysis: React.FC = () => {
   const { 
-    policyBudgetModifier,
-    setPolicyBudgetModifier,
-    industrialEnforcement,
-    setIndustrialEnforcement,
-    reforestationTarget,
-    setReforestationTarget
+    simulationParams, 
+    setSimulationParam, 
+    setAllSimulationParams,
+    simulationResult,
+    setSimulationResult,
+    isSimulating,
+    setIsSimulating,
+    addToast
   } = useStore();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [confidenceThreshold, setConfidenceThreshold] = useState(80);
-  const [activeExplainId, setActiveExplainId] = useState<string | null>(null);
+  const [activeScenario, setActiveScenario] = useState<string>('Baseline');
 
-  // Compute live simulation results based on Zustand sliders
-  const simulationResults = calculateScenarioSimulation(
-    policyBudgetModifier,
-    industrialEnforcement,
-    reforestationTarget
-  );
-
-  const handleRunSimulation = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      alert("AI Simulation Engine completed. Scenario workbook metrics re-calculated successfully.");
-    }, 600);
+  const runSim = async (params = simulationParams) => {
+    setIsSimulating(true);
+    // Simulate AI processing delay
+    await new Promise(r => setTimeout(r, 1200));
+    const result = runDeterministicSimulation(params);
+    setSimulationResult(result);
+    setIsSimulating(false);
+    addToast("Simulation complete. Telemetry updated.", "success");
   };
 
-  const handleExportReport = () => {
-    window.print();
+  // Run initial simulation on mount
+  useEffect(() => {
+    if (!simulationResult) {
+      runSim(simulationParams);
+    }
+  }, []);
+
+  const scenarios = [
+    {
+      name: "Aggressive Tree Plantation",
+      params: { treePlantation: 90, groundwaterExtraction: 50, rainwaterHarvesting: 50, inspectionFrequency: 50, banStubbleBurning: false, promoteDripIrrigation: false, afforestationBudget: 80, officerDeployment: 60, newEnvironmentalScheme: true, carbonCreditParticipation: true }
+    },
+    {
+      name: "Water Conservation Mission",
+      params: { treePlantation: 60, groundwaterExtraction: 20, rainwaterHarvesting: 90, inspectionFrequency: 70, banStubbleBurning: false, promoteDripIrrigation: true, afforestationBudget: 50, officerDeployment: 50, newEnvironmentalScheme: true, carbonCreditParticipation: false }
+    },
+    {
+      name: "Industrial Expansion",
+      params: { treePlantation: 40, groundwaterExtraction: 80, rainwaterHarvesting: 30, inspectionFrequency: 40, banStubbleBurning: false, promoteDripIrrigation: false, afforestationBudget: 30, officerDeployment: 40, newEnvironmentalScheme: false, carbonCreditParticipation: false }
+    },
+    {
+      name: "Extreme Drought",
+      params: { treePlantation: 30, groundwaterExtraction: 90, rainwaterHarvesting: 10, inspectionFrequency: 50, banStubbleBurning: false, promoteDripIrrigation: false, afforestationBudget: 20, officerDeployment: 50, newEnvironmentalScheme: false, carbonCreditParticipation: false }
+    }
+  ];
+
+  const applyScenario = (name: string, params: any) => {
+    setActiveScenario(name);
+    setAllSimulationParams(params);
+    runSim(params);
   };
 
-  // Adjust risk pct dynamically based on simulation variables
-  const getAdjustedRisk = (category: string, baseRisk: number) => {
-    if (category === 'fire') {
-      return Math.max(5, Math.round(baseRisk - (reforestationTarget * 0.3) - (industrialEnforcement * 0.2)));
-    }
-    if (category === 'water') {
-      return Math.max(5, Math.round(baseRisk - (policyBudgetModifier * 0.4)));
-    }
-    if (category === 'flood') {
-      return Math.max(5, Math.round(baseRisk - (policyBudgetModifier * 0.1)));
-    }
-    if (category === 'crop') {
-      return Math.max(5, Math.round(baseRisk - (policyBudgetModifier * 0.25) - (reforestationTarget * 0.15)));
-    }
-    return baseRisk; // carbon
+  const handleSliderChange = (key: string, val: number) => {
+    setActiveScenario('Custom');
+    setSimulationParam(key, val);
   };
 
-  const filteredForecasts = aiModelForecasts.filter(f => f.confidenceScore >= confidenceThreshold);
+  const handleToggleChange = (key: string, val: boolean) => {
+    setActiveScenario('Custom');
+    setSimulationParam(key, val);
+  };
+
+  if (!simulationResult) {
+    return (
+      <div className="flex-grow flex items-center justify-center bg-surface-container-low">
+        <div className="text-center space-y-4">
+          <span className="material-symbols-outlined animate-spin text-[40px] text-primary">sync</span>
+          <p className="text-sm font-bold text-on-surface-variant uppercase tracking-widest">Initializing AI Engine...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { districtScore, executiveSummary, recommendation, riskLevel, indicators, financial, deployment } = simulationResult;
+
+  const getStatusColor = (status: string) => {
+    if (status === 'optimal') return 'text-green-500 bg-green-500/10';
+    if (status === 'warning') return 'text-amber-500 bg-amber-500/10';
+    return 'text-red-500 bg-red-500/10';
+  };
 
   return (
-    <div className="flex-grow flex flex-col h-full overflow-hidden bg-surface text-on-surface select-none">
-      
-      {/* Upper AI Command Header */}
-      <section className="bg-[#FAF5FF] border-b border-purple-200 px-gutter py-3.5 flex flex-wrap gap-4 items-center justify-between shadow-xs">
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-purple-700 text-[26px]">psychology</span>
+    <div className="flex-grow flex flex-col h-full overflow-hidden bg-surface-container-low text-on-surface select-none">
+      {/* SECTION 1: Executive Briefing */}
+      <section className="bg-surface border-b border-outline-variant px-6 py-4 flex flex-col gap-4 shrink-0 shadow-sm z-10">
+        <div className="flex justify-between items-start">
           <div>
-            <h2 className="font-headline-sm text-label-lg font-bold text-purple-950 uppercase tracking-wider flex items-center gap-2">
-              AI Decision Intelligence Center
+            <h2 className="text-title-lg font-bold text-on-surface tracking-tight flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">auto_awesome</span>
+              Executive Decision Intelligence Workspace
             </h2>
-            <span className="text-[10px] text-purple-700 font-bold font-mono uppercase tracking-widest">
-              Prakriti AI Sentinel Engine
-            </span>
+            <div className="flex items-center gap-3 mt-1 text-[11px] font-mono-data text-on-surface-variant uppercase tracking-widest font-bold">
+              <span>Last Updated: {new Date().toLocaleTimeString()}</span>
+              <span>•</span>
+              <span className="text-primary">AI Confidence: {districtScore.confidence}%</span>
+              <span>•</span>
+              <span className={riskLevel === 'Low' ? 'text-green-500' : riskLevel === 'Moderate' ? 'text-amber-500' : 'text-red-500'}>
+                Risk: {riskLevel}
+              </span>
+            </div>
           </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Confidence Filter */}
-          <div className="flex items-center gap-2 bg-white border border-purple-200 rounded px-2.5 py-1 text-xs">
-            <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider">Conf. Threshold:</span>
-            <input 
-              type="range" 
-              min="80" 
-              max="90" 
-              value={confidenceThreshold}
-              onChange={(e) => setConfidenceThreshold(parseInt(e.target.value))}
-              className="w-20 h-1 accent-purple-600 cursor-pointer"
-            />
-            <span className="font-bold text-purple-950 font-mono-data">{confidenceThreshold}%+</span>
-          </div>
-
-          <button 
-            onClick={handleExportReport}
-            className="flex items-center gap-1.5 px-4 py-2 bg-purple-700 text-white font-bold text-xs rounded uppercase tracking-wider hover:bg-purple-800 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-            Compile AI Report
+          <button onClick={() => window.print()} className="px-4 py-2 bg-surface-container border border-outline-variant text-on-surface font-bold text-xs rounded uppercase tracking-wider hover:bg-surface-container-high transition-all">
+            Export Brief
           </button>
+        </div>
+        <div className="bg-surface-container-low border-l-[3px] border-primary p-3 rounded-r text-sm text-on-surface leading-relaxed">
+          <span className="font-bold mr-2">AI Summary:</span>
+          {executiveSummary}
         </div>
       </section>
 
-      {/* Main scrolling layout */}
-      <div className="flex-grow overflow-y-auto p-4 space-y-4">
-        
-        {/* Row 1: "What-If" Scenario Simulation Policy Board */}
-        <div className="grid grid-cols-12 gap-4">
-          
-          {/* Simulation Controls Slider Panel */}
-          <div className="col-span-8 bg-white border border-purple-200 p-6 rounded-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
+      <div className="flex-grow overflow-y-auto p-4 md:p-6 space-y-6 dashboard-grid relative">
+        {isSimulating && (
+          <div className="absolute inset-0 bg-surface/50 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
+             <div className="bg-surface p-6 rounded-lg shadow-lg border border-outline-variant flex flex-col items-center gap-4">
+               <span className="material-symbols-outlined animate-spin text-[32px] text-primary">sync</span>
+               <span className="font-bold text-sm uppercase tracking-widest text-primary">AI is analyzing environmental impact...</span>
+             </div>
+          </div>
+        )}
+
+        {/* SECTION 3: Scenario Library */}
+        <div className="col-span-12 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {scenarios.map(s => (
+            <button 
+              key={s.name}
+              onClick={() => applyScenario(s.name, s.params)}
+              className={`whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider rounded border transition-all ${
+                activeScenario === s.name ? 'bg-primary text-on-primary border-primary shadow-md' : 'bg-surface text-on-surface-variant border-outline-variant hover:bg-surface-container hover:text-on-surface'
+              }`}
+            >
+              {s.name}
+            </button>
+          ))}
+        </div>
+
+        {/* SECTION 2: Run Simulation (Hero Feature) */}
+        <div className="col-span-12 bg-surface border border-outline-variant rounded-lg p-5 shadow-sm">
+          <div className="flex justify-between items-center mb-6 pb-3 border-b border-outline-variant">
+            <h3 className="font-bold text-on-surface text-sm uppercase tracking-wider flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">tune</span> Policy Simulation Engine
+            </h3>
+            <button 
+              onClick={() => runSim()}
+              className="px-6 py-2 bg-primary text-on-primary font-bold text-xs rounded uppercase tracking-wider hover:bg-primary/90 transition-colors shadow-md flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-[16px]">play_arrow</span> Run Simulation
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6">
+            {[
+              { label: "Tree Plantation", key: 'treePlantation', type: 'slider' },
+              { label: "Groundwater Extraction", key: 'groundwaterExtraction', type: 'slider' },
+              { label: "Rainwater Harvesting", key: 'rainwaterHarvesting', type: 'slider' },
+              { label: "Inspection Frequency", key: 'inspectionFrequency', type: 'slider' },
+              { label: "Afforestation Budget", key: 'afforestationBudget', type: 'slider' },
+              { label: "Officer Deployment", key: 'officerDeployment', type: 'slider' },
+              { label: "Ban Stubble Burning", key: 'banStubbleBurning', type: 'toggle' },
+              { label: "Promote Drip Irrigation", key: 'promoteDripIrrigation', type: 'toggle' },
+              { label: "New Environmental Scheme", key: 'newEnvironmentalScheme', type: 'toggle' },
+              { label: "Carbon Credit Exchange", key: 'carbonCreditParticipation', type: 'toggle' }
+            ].map(param => (
+              <div key={param.key} className="space-y-2">
+                <div className="flex justify-between text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span>{param.label}</span>
+                  {param.type === 'slider' && <span className="text-primary font-mono-data">{(simulationParams as any)[param.key]}%</span>}
+                </div>
+                {param.type === 'slider' ? (
+                  <input 
+                    type="range" min="0" max="100" value={(simulationParams as any)[param.key]}
+                    onChange={(e) => handleSliderChange(param.key, parseInt(e.target.value))}
+                    className="w-full h-1.5 bg-surface-container rounded appearance-none cursor-pointer accent-primary"
+                  />
+                ) : (
+                  <button 
+                    onClick={() => handleToggleChange(param.key, !(simulationParams as any)[param.key])}
+                    className={`w-full py-1.5 rounded text-[11px] font-bold uppercase transition-colors ${
+                      (simulationParams as any)[param.key] ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'
+                    }`}
+                  >
+                    {(simulationParams as any)[param.key] ? 'Enabled' : 'Disabled'}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 5: AI Decision Recommendation Panel & SECTION 6: Radial Chart */}
+        <div className="col-span-12 grid grid-cols-12 gap-6">
+          <div className="col-span-12 md:col-span-8 bg-surface border border-outline-variant p-5 rounded-lg shadow-sm">
+             <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-4 border-b border-outline-variant pb-2">AI Recommendation</h3>
+             <div className="text-title-md font-bold text-on-surface mb-4 leading-tight">
+               {recommendation}
+             </div>
+             <div className="grid grid-cols-3 gap-4">
+                <div className="p-3 bg-surface-container-lowest border border-outline-variant rounded">
+                  <span className="text-[10px] uppercase font-bold text-on-surface-variant block mb-1">Expected Impact</span>
+                  <span className={`font-bold text-sm ${districtScore.predicted > districtScore.current ? 'text-green-500' : 'text-red-500'}`}>
+                    {districtScore.predicted > districtScore.current ? 'Positive' : 'Negative'} Shift
+                  </span>
+                </div>
+                <div className="p-3 bg-surface-container-lowest border border-outline-variant rounded">
+                  <span className="text-[10px] uppercase font-bold text-on-surface-variant block mb-1">Required Budget</span>
+                  <span className="font-bold text-sm font-mono-data">₹{financial.budgetRequired} Cr</span>
+                </div>
+                <div className="p-3 bg-surface-container-lowest border border-outline-variant rounded">
+                  <span className="text-[10px] uppercase font-bold text-on-surface-variant block mb-1">Timeline</span>
+                  <span className="font-bold text-sm">{deployment.expectedCompletion}</span>
+                </div>
+             </div>
+          </div>
+
+          <div className="col-span-12 md:col-span-4 bg-surface border border-outline-variant p-5 rounded-lg shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
+             <span className="text-[10px] uppercase font-bold text-on-surface-variant absolute top-4 left-4">District Health Prediction</span>
+             <div className="relative w-32 h-32 flex items-center justify-center mt-4">
+                {/* Simulated Radial Chart */}
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle cx="64" cy="64" r="56" stroke="var(--color-surface-container)" strokeWidth="12" fill="none" />
+                  <circle cx="64" cy="64" r="56" stroke="var(--color-primary)" strokeWidth="12" fill="none" 
+                          strokeDasharray="351.8" strokeDashoffset={351.8 - (351.8 * districtScore.predicted) / 100} 
+                          className="transition-all duration-1000 ease-out" />
+                </svg>
+                <div className="absolute flex flex-col items-center">
+                  <span className="text-display-sm font-bold font-mono-data leading-none">{districtScore.predicted}</span>
+                  <span className={`text-[10px] font-bold ${districtScore.predicted >= districtScore.current ? 'text-green-500' : 'text-red-500'}`}>
+                    {districtScore.predicted >= districtScore.current ? '↑' : '↓'} {Math.abs(districtScore.predicted - districtScore.current)} pts
+                  </span>
+                </div>
+             </div>
+             <div className="flex gap-4 mt-4 text-[10px] font-mono-data text-on-surface-variant">
+               <span>Base: {districtScore.current}</span>
+               <span>Target: 80</span>
+               <span>State Avg: 62</span>
+             </div>
+          </div>
+        </div>
+
+        {/* SECTION 7: Environmental Indicators Grid */}
+        <div className="col-span-12">
+          <h3 className="font-bold text-on-surface text-sm uppercase tracking-wider mb-4">Environmental Telemetry Matrix</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {Object.entries(indicators).map(([key, ind]: [string, any]) => (
+              <div key={key} className="bg-surface border border-outline-variant p-3 rounded flex flex-col gap-2 hover:shadow-sm transition-shadow cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <span className="text-[10px] uppercase font-bold text-on-surface-variant truncate pr-2">
+                    {key.replace(/([A-Z])/g, ' $1').trim()}
+                  </span>
+                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${getStatusColor(ind.status)}`}>
+                    {ind.status}
+                  </span>
+                </div>
+                <div className="flex items-end gap-2">
+                  <span className="text-title-lg font-bold font-mono-data leading-none">{ind.predicted}</span>
+                  <span className="text-[10px] text-on-surface-variant font-mono-data pb-0.5">{ind.unit}</span>
+                </div>
+                <div className="flex justify-between items-center text-[10px] border-t border-outline-variant pt-2 mt-1">
+                  <span className="text-on-surface-variant">Base: {ind.current}</span>
+                  <span className={`font-bold flex items-center ${ind.trend === 'up' ? 'text-green-500' : ind.trend === 'down' ? 'text-red-500' : 'text-on-surface-variant'}`}>
+                    {ind.trend === 'up' ? '↑' : ind.trend === 'down' ? '↓' : '-'} 
+                    {Math.abs(ind.predicted - ind.current)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 4: Interactive Forecasting Charts */}
+        <div className="col-span-12">
+          <h3 className="font-bold text-on-surface text-sm uppercase tracking-wider mb-4 border-b border-outline-variant pb-2">Predictive Telemetry Models</h3>
+          <div className="grid grid-cols-12 gap-6">
+            <PowerBiChartCard 
+              title="Groundwater Drawdown Forecast" 
+              subtitle="Historical actuals vs AI predictive trajectory" 
+              colSpan={6}
+              dataSource="Hydrology Sensors & AI Predictor"
+              confidence={88}
+              tooltipText="Predictive modeling of groundwater depletion based on current consumption rates."
+            >
+              <GroundwaterForecastChart />
+            </PowerBiChartCard>
+
+            <PowerBiChartCard 
+              title="Carbon Sequestration Progress" 
+              subtitle="Offset actuals vs target accumulation" 
+              colSpan={6}
+              dataSource="Carbon Accounting Node"
+              confidence={94}
+              tooltipText="Tracking real-time carbon offset metrics against the defined municipal target."
+            >
+              <CarbonProgressChart />
+            </PowerBiChartCard>
+
+            <PowerBiChartCard 
+              title="Vegetation Growth Trajectory" 
+              subtitle="NDVI actual coverage vs mandate" 
+              colSpan={6}
+              dataSource="Satellite NDVI Service"
+              confidence={96}
+              tooltipText="Satellite-derived vegetative index comparing current growth to the reforestation mandate."
+            >
+              <VegetationGrowthChart />
+            </PowerBiChartCard>
             
-            {isLoading && (
-              <div className="absolute inset-0 bg-white/70 flex flex-col justify-center items-center gap-2 z-10">
-                <span className="material-symbols-outlined animate-spin text-[32px] text-purple-700">loading_timer</span>
-                <span className="text-xs text-purple-950 font-mono font-bold">RE-COMPILING CLIMATOLOGICAL OUTCOMES...</span>
-              </div>
-            )}
-
-            <div>
-              <div className="flex items-center gap-2 pb-3 border-b border-purple-100 mb-4">
-                <span className="material-symbols-outlined text-purple-700">tune</span>
-                <h3 className="font-bold text-purple-950 text-sm uppercase tracking-wider">
-                  "What-If" Policy Simulation Board
-                </h3>
-              </div>
-
-              {/* Sliders Grid */}
-              <div className="grid grid-cols-3 gap-6 text-xs">
-                
-                {/* Budget */}
-                <div className="space-y-2">
-                  <div className="flex justify-between font-bold text-purple-950">
-                    <span>ENVIRONMENTAL BUDGET</span>
-                    <span className="font-mono-data text-purple-700">{policyBudgetModifier}%</span>
-                  </div>
-                  <input 
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={policyBudgetModifier}
-                    onChange={(e) => setPolicyBudgetModifier(parseInt(e.target.value))}
-                    className="w-full h-1.5 bg-purple-50 rounded-lg appearance-none cursor-pointer accent-purple-600"
-                  />
-                  <p className="text-[10px] text-on-surface-variant leading-tight">
-                    Affects water tables filtration and localized reservoir building.
-                  </p>
-                </div>
-
-                {/* Industrial enforcement */}
-                <div className="space-y-2">
-                  <div className="flex justify-between font-bold text-purple-950">
-                    <span>EMISSION ENFORCEMENT</span>
-                    <span className="font-mono-data text-purple-700">{industrialEnforcement}%</span>
-                  </div>
-                  <input 
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={industrialEnforcement}
-                    onChange={(e) => setIndustrialEnforcement(parseInt(e.target.value))}
-                    className="w-full h-1.5 bg-purple-50 rounded-lg appearance-none cursor-pointer accent-purple-600"
-                  />
-                  <p className="text-[10px] text-on-surface-variant leading-tight">
-                    Regulates factory AQI stack filters and chemical discharge compliance.
-                  </p>
-                </div>
-
-                {/* Plantation modifier */}
-                <div className="space-y-2">
-                  <div className="flex justify-between font-bold text-purple-950">
-                    <span>AFFORESTATION TARGETS</span>
-                    <span className="font-mono-data text-purple-700">{reforestationTarget}%</span>
-                  </div>
-                  <input 
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={reforestationTarget}
-                    onChange={(e) => setReforestationTarget(parseInt(e.target.value))}
-                    className="w-full h-1.5 bg-purple-50 rounded-lg appearance-none cursor-pointer accent-purple-600"
-                  />
-                  <p className="text-[10px] text-on-surface-variant leading-tight">
-                    Directs biomass canopy preservation and carbon credit markets.
-                  </p>
-                </div>
-
-              </div>
-            </div>
-
-            <div className="mt-5 flex justify-between items-center border-t border-purple-100 pt-4">
-              <span className="text-[10px] text-on-surface-variant font-bold block uppercase tracking-wider">
-                COPILOT FOR GOVERNMENT SIMULATOR
-              </span>
-              <button 
-                onClick={handleRunSimulation}
-                className="px-5 py-2 bg-purple-700 text-white rounded font-bold text-xs uppercase tracking-wider hover:bg-purple-800 transition-colors flex items-center gap-1.5"
-              >
-                <span className="material-symbols-outlined text-[16px]">play_circle</span>
-                Run Policy Simulation
-              </button>
-            </div>
-          </div>
-
-          {/* Simulated Outcomes Card */}
-          <div className="col-span-4 bg-purple-950 text-purple-50 p-6 rounded-lg shadow-md flex flex-col justify-between relative overflow-hidden border border-purple-800">
-            {/* Ambient Purple glow overlay */}
-            <div className="absolute -right-16 -top-16 w-32 h-32 rounded-full bg-purple-700/30 blur-2xl pointer-events-none" />
-
-            <div>
-              <div className="flex justify-between items-center pb-2.5 border-b border-purple-800/80 mb-3">
-                <span className="text-[10px] text-purple-300 font-bold uppercase tracking-wider">SIMULATION FORECAST</span>
-                <span className="text-[9px] bg-purple-800 text-purple-100 font-bold px-2 py-0.5 rounded font-mono">
-                  PREDICTIVE OUTCOMES
-                </span>
-              </div>
-
-              {/* Outcomes list */}
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between items-center py-1 border-b border-purple-900/60">
-                  <span className="text-purple-300 font-semibold">Simulated Fire Risk:</span>
-                  <span className="font-mono-data font-bold text-purple-100">{simulationResults.fireRiskPct}% probability</span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-purple-900/60">
-                  <span className="text-purple-300 font-semibold">Groundwater Drawdown Risk:</span>
-                  <span className="font-mono-data font-bold text-purple-100">{simulationResults.groundwaterRiskPct}% probability</span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-purple-900/60">
-                  <span className="text-purple-300 font-semibold">Simulated Crop Yield:</span>
-                  <span className="font-mono-data font-bold text-purple-100">+{simulationResults.cropYieldPct - 60}% delta</span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-purple-900/60">
-                  <span className="text-purple-300 font-semibold">Simulated Carbon Capture:</span>
-                  <span className="font-mono-data font-bold text-purple-100">{simulationResults.carbonOffsetKt} kT/year</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-purple-800 flex justify-between items-center">
-              <span className="text-[10px] text-purple-300 uppercase tracking-wider font-bold">PRAKRITI SCORE DELTA</span>
-              <span className={`text-headline-sm font-bold font-mono-data ${simulationResults.prakritiScoreDelta >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {simulationResults.prakritiScoreDelta >= 0 ? '+' : ''}{simulationResults.prakritiScoreDelta} pts
-              </span>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Row 2: AI Sentinel Predictions with Explainable AI Drawer dropdowns */}
-        <div className="space-y-3">
-          <span className="text-[10px] text-on-surface-variant font-bold block uppercase tracking-wider font-mono">
-            Active Sentinel Climatological Models ({filteredForecasts.length})
-          </span>
-
-          <div className="grid grid-cols-1 gap-3">
-            {filteredForecasts.map(forecast => {
-              const currentRisk = getAdjustedRisk(forecast.category, forecast.baseRiskPct);
-              const isHigh = currentRisk >= 60;
-              const isMed = currentRisk >= 35;
-              const riskColor = isHigh ? 'text-error' : isMed ? 'text-yellow-500' : 'text-primary';
-              const riskBg = isHigh ? 'bg-error-container/20' : isMed ? 'bg-yellow-50/50' : 'bg-primary-container/20';
-
-              const isExplained = activeExplainId === forecast.id;
-
-              return (
-                <div 
-                  key={forecast.id} 
-                  className={`bg-white border rounded-lg p-5 transition-all shadow-xs border-purple-200/60 hover:border-purple-500 flex flex-col gap-3 relative`}
-                >
-                  <div className="flex flex-wrap gap-4 items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className={`material-symbols-outlined text-[20px] p-2 rounded-full ${riskBg} ${
-                        forecast.category === 'fire' ? 'text-error' : 
-                        forecast.category === 'water' ? 'text-secondary' : 'text-purple-700'
-                      }`}>
-                        {forecast.category === 'fire' ? 'local_fire_department' :
-                         forecast.category === 'water' ? 'water_drop' : 'analytics'}
-                      </span>
-                      <div>
-                        <h4 className="font-bold text-sm text-purple-950 font-sans">{forecast.title}</h4>
-                        <p className="text-xs text-on-surface-variant leading-relaxed">
-                          {forecast.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-6 text-xs">
-                      {/* Risk Pct */}
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-on-surface-variant font-bold block uppercase tracking-wider mb-0.5">CURRENT RISK</span>
-                        <span className={`font-mono-data font-bold text-sm ${riskColor}`}>
-                          {currentRisk}%
-                        </span>
-                      </div>
-
-                      {/* Confidence */}
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-on-surface-variant font-bold block uppercase tracking-wider mb-0.5">CONFIDENCE</span>
-                        <span className="font-mono-data font-bold text-purple-700 text-sm">
-                          {forecast.confidenceScore}%
-                        </span>
-                      </div>
-
-                      {/* Explain button */}
-                      <button
-                        onClick={() => setActiveExplainId(isExplained ? null : forecast.id)}
-                        className="px-3 py-1.5 bg-purple-50 border border-purple-200 text-purple-700 rounded text-xs font-bold uppercase flex items-center gap-1 hover:bg-purple-100"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">visibility</span>
-                        {isExplained ? 'Hide Data Sources' : 'Explain AI'}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Explainable AI dropdown drawer */}
-                  {isExplained && (
-                    <div className="mt-3 p-4 bg-[#FAF5FF] border border-purple-200 rounded-lg grid grid-cols-2 gap-6 text-xs text-purple-950 border-t-2 border-t-purple-600 animate-fadeIn">
-                      
-                      {/* Evidence */}
-                      <div className="space-y-2">
-                        <span className="font-bold text-[10px] text-purple-800 uppercase tracking-widest block font-bold">
-                          Explainable Evidence & Logs
-                        </span>
-                        <ul className="list-disc pl-4 space-y-1 text-on-surface">
-                          {forecast.evidence.map((ev, i) => (
-                            <li key={i} className="leading-relaxed">{ev}</li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Data Sources */}
-                      <div className="space-y-2 border-l border-purple-200/60 pl-6">
-                        <span className="font-bold text-[10px] text-purple-800 uppercase tracking-widest block font-bold">
-                          Data Ingestion Registries
-                        </span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {forecast.dataSources.map((ds, i) => (
-                            <span key={i} className="bg-white border border-purple-200 text-purple-950 px-2 py-0.5 rounded font-mono text-[10px]">
-                              {ds}
-                            </span>
-                          ))}
-                        </div>
-                        <div className="mt-3 text-[10px] text-on-surface-variant font-mono">
-                          Forecasting Model signature: <span className="font-bold text-purple-700">{forecast.modelId}</span>
-                        </div>
-                      </div>
-
-                    </div>
-                  )}
-
-                </div>
-              );
-            })}
+            <PowerBiChartCard 
+              title="Environmental Risk Multi-Axis" 
+              subtitle="Current systemic vulnerabilities" 
+              colSpan={6} minHeight="400px"
+              dataSource="Risk Assessment AI"
+              confidence={91}
+              tooltipText="Radar visualization of key environmental risk factors."
+            >
+              <EnvironmentalRiskForecastChart />
+            </PowerBiChartCard>
           </div>
         </div>
 
-        {/* Row 3: AI Recommendations */}
-        <div className="grid grid-cols-12 gap-4">
-          
-          {/* Action Recommendations */}
-          <div className="col-span-8 bg-white border border-purple-200 p-6 rounded-lg shadow-sm flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2 pb-3 border-b border-purple-100 mb-4">
-                <span className="material-symbols-outlined text-purple-700">recommend</span>
-                <h3 className="font-bold text-purple-950 text-sm uppercase tracking-wider">
-                  Recommended Climatological Interventions
-                </h3>
+        {/* SECTION 8, 9, 10: Operational Impact Cards */}
+        <div className="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-surface border border-outline-variant p-5 rounded-lg shadow-sm">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">account_balance</span> Financial Impact</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center border-b border-outline-variant pb-2">
+                <span className="text-sm">Budget Required</span>
+                <span className="font-mono-data font-bold">₹{financial.budgetRequired} Cr</span>
               </div>
-
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="p-4 bg-purple-50/40 border border-purple-100 rounded-lg space-y-1.5">
-                  <span className="font-bold text-purple-900 block text-xs">Water Catchment Audit</span>
-                  <p className="text-on-surface-variant leading-relaxed">
-                    Trigger groundwater checks across Dhar Block agricultural borders to counter depletion metrics immediately.
-                  </p>
-                </div>
-                <div className="p-4 bg-purple-50/40 border border-purple-100 rounded-lg space-y-1.5">
-                  <span className="font-bold text-purple-900 block text-xs">Dry Fog Smog Towers Deployment</span>
-                  <p className="text-on-surface-variant leading-relaxed">
-                    Allocate ₹1.5 Cr to deploy localized AQI fog towers at Pithampur industrial blocks to filter seasonal particulate counts.
-                  </p>
-                </div>
+              <div className="flex justify-between items-center border-b border-outline-variant pb-2">
+                <span className="text-sm">Estimated Savings</span>
+                <span className="font-mono-data font-bold text-green-500">₹{financial.estimatedSavings} Cr</span>
+              </div>
+              <div className="flex justify-between items-center border-b border-outline-variant pb-2">
+                <span className="text-sm">Carbon Revenue</span>
+                <span className="font-mono-data font-bold text-primary">₹{financial.carbonRevenue} Cr</span>
+              </div>
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-sm font-bold uppercase">5-Year ROI</span>
+                <span className={`font-mono-data font-bold text-lg ${financial.roi > 100 ? 'text-green-500' : 'text-red-500'}`}>{financial.roi}%</span>
               </div>
             </div>
           </div>
 
-          {/* AI Timeline Warnings */}
-          <div className="col-span-4 bg-white border border-purple-200 p-6 rounded-lg shadow-sm flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2 pb-3 border-b border-purple-100 mb-3">
-                <span className="material-symbols-outlined text-purple-700">timeline</span>
-                <h3 className="font-bold text-purple-950 text-sm uppercase tracking-wider">
-                  Predictive AI Sentinel Timeline
-                </h3>
+          <div className="bg-surface border border-outline-variant p-5 rounded-lg shadow-sm">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">badge</span> Officer Deployment</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center border-b border-outline-variant pb-2">
+                <span className="text-sm">Required Field Officers</span>
+                <span className="font-mono-data font-bold">{deployment.requiredOfficers}</span>
               </div>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex gap-3 items-start">
-                  <span className="w-2 h-2 rounded-full bg-error shrink-0 mt-1" />
-                  <div>
-                    <span className="font-bold text-purple-950 block">Q3 2026: Dry Canopy Alert</span>
-                    <p className="text-on-surface-variant text-[11px]">Forest fire probability peaks due to high local temperatures.</p>
-                  </div>
+              <div className="flex justify-between items-center border-b border-outline-variant pb-2">
+                <span className="text-sm">Inspection Load</span>
+                <span className="font-mono-data font-bold">{deployment.inspectionLoad}%</span>
+              </div>
+              <div className="mt-4 pt-2">
+                <div className="w-full bg-surface-container rounded-full h-2 mb-1">
+                  <div className="bg-primary h-2 rounded-full" style={{ width: `${Math.min(100, deployment.inspectionLoad)}%` }}></div>
                 </div>
-                <div className="flex gap-3 items-start">
-                  <span className="w-2 h-2 rounded-full bg-yellow-500 shrink-0 mt-1" />
-                  <div>
-                    <span className="font-bold text-purple-950 block">Q4 2026: Soil pH Degradation</span>
-                    <p className="text-on-surface-variant text-[11px]">Sardarpur agricultural sectors show fertilizer trace spikes.</p>
-                  </div>
-                </div>
+                <span className="text-[10px] text-on-surface-variant uppercase">Resource Utilization Target</span>
               </div>
             </div>
           </div>
 
+          <div className="bg-surface border border-outline-variant p-5 rounded-lg shadow-sm">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">timeline</span> Implementation Timeline</h3>
+            <div className="space-y-3 relative before:absolute before:inset-0 before:ml-1.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-outline-variant before:to-transparent">
+               <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                  <div className="flex items-center justify-center w-3 h-3 rounded-full bg-primary border-2 border-surface shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow"></div>
+                  <div className="w-[calc(100%-1.5rem)] md:w-[calc(50%-1.5rem)] px-2">
+                    <div className="text-[10px] font-bold uppercase text-on-surface-variant">Week 1</div>
+                    <div className="text-xs">Policy Directive Issued</div>
+                  </div>
+               </div>
+               <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                  <div className="flex items-center justify-center w-3 h-3 rounded-full bg-outline-variant border-2 border-surface shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow"></div>
+                  <div className="w-[calc(100%-1.5rem)] md:w-[calc(50%-1.5rem)] px-2 text-right">
+                    <div className="text-[10px] font-bold uppercase text-on-surface-variant">Month 1</div>
+                    <div className="text-xs">Deployment & Enforcement</div>
+                  </div>
+               </div>
+               <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                  <div className="flex items-center justify-center w-3 h-3 rounded-full bg-outline-variant border-2 border-surface shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow"></div>
+                  <div className="w-[calc(100%-1.5rem)] md:w-[calc(50%-1.5rem)] px-2">
+                    <div className="text-[10px] font-bold uppercase text-on-surface-variant">Month 6</div>
+                    <div className="text-xs">First Telemetry Shift ({districtScore.predicted > districtScore.current ? 'Positive' : 'Negative'})</div>
+                  </div>
+               </div>
+            </div>
+          </div>
         </div>
 
       </div>

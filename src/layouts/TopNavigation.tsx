@@ -43,7 +43,6 @@ export const TopNavigation: React.FC = () => {
   const handleRoleChange = (role: any) => {
     setCurrentRole(role);
     setIsProfileOpen(false);
-    alert(`Switched workspace session context to role hierarchy: ${role}`);
   };
 
   return (
@@ -57,9 +56,9 @@ export const TopNavigation: React.FC = () => {
             <span className="material-symbols-outlined text-[18px] text-primary animate-spin-slow">eco</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-[9px] font-bold text-primary tracking-widest leading-none">GOVT. OF MADHYA PRADESH</span>
+            <span className="text-[9px] font-bold text-primary tracking-widest leading-none">GOVERNMENT OF MP</span>
             <h1 className="font-headline-sm text-[16px] font-bold tracking-tight text-on-background dark:text-white leading-tight">
-              Prakriti Command Center
+              Prakriti Command
             </h1>
           </div>
         </div>
@@ -71,11 +70,11 @@ export const TopNavigation: React.FC = () => {
       </div>
 
       {/* Center Utilities: District Selection & Search */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         {/* District Selector */}
-        <div className="flex items-center bg-surface-container-low px-3 py-1 rounded border border-outline-variant">
-          <span className="material-symbols-outlined text-on-surface-variant text-[16px] mr-2">location_city</span>
-          <select className="bg-transparent border-none p-0 text-body-sm text-on-surface font-semibold focus:ring-0 cursor-pointer">
+        <div className="flex items-center bg-surface-container-low px-2 py-1 rounded border border-outline-variant hover:border-outline transition-colors">
+          <span className="material-symbols-outlined text-on-surface-variant text-[14px] mr-1.5">location_city</span>
+          <select className="bg-transparent border-none p-0 text-[11px] text-on-surface font-semibold focus:ring-0 cursor-pointer outline-none">
             {mpDistricts.map((dist) => (
               <option key={dist} value={dist}>{dist} District</option>
             ))}
@@ -85,11 +84,11 @@ export const TopNavigation: React.FC = () => {
         {/* Global search trigger */}
         <div 
           onClick={() => setSearchOpen(true)}
-          className="flex items-center bg-surface-container-low px-3 py-1 rounded border border-outline-variant w-80 cursor-pointer hover:border-primary transition-colors"
+          className="flex items-center bg-surface-container-low px-2 py-1 rounded border border-outline-variant w-64 cursor-pointer hover:border-primary transition-colors"
         >
-          <span className="material-symbols-outlined text-on-surface-variant text-[16px] mr-2">search</span>
-          <span className="text-body-sm text-on-surface-variant flex-1">Search districts, villages, assets...</span>
-          <span className="text-[10px] font-bold bg-surface-container border border-outline-variant px-1 rounded text-on-surface-variant">/</span>
+          <span className="material-symbols-outlined text-on-surface-variant text-[14px] mr-1.5">search</span>
+          <span className="text-[11px] text-on-surface-variant flex-1">Search global index...</span>
+          <span className="text-[9px] font-bold bg-surface-container border border-outline-variant px-1 rounded text-on-surface-variant">/</span>
         </div>
       </div>
 
@@ -123,19 +122,19 @@ export const TopNavigation: React.FC = () => {
         {/* Command palette button */}
         <button 
           onClick={() => setCommandPaletteOpen(true)}
-          className="p-1.5 hover:bg-surface-container-low border border-outline-variant rounded text-on-surface-variant"
+          className="p-1 hover:bg-surface-container-low border border-outline-variant rounded text-on-surface-variant transition-colors"
           title="Command Console (Ctrl+K)"
         >
-          <span className="material-symbols-outlined text-[18px]">terminal</span>
+          <span className="material-symbols-outlined text-[16px]">terminal</span>
         </button>
 
         {/* Theme toggle */}
         <button 
           onClick={toggleTheme}
-          className="p-1.5 hover:bg-surface-container-low border border-outline-variant rounded text-on-surface-variant"
+          className="p-1 hover:bg-surface-container-low border border-outline-variant rounded text-on-surface-variant transition-colors"
           title="Toggle Light/Dark Theme"
         >
-          <span className="material-symbols-outlined text-[18px]">
+          <span className="material-symbols-outlined text-[16px]">
             {settings.theme === 'light' ? 'dark_mode' : 'light_mode'}
           </span>
         </button>
@@ -144,11 +143,11 @@ export const TopNavigation: React.FC = () => {
         <div className="relative">
           <button 
             onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className="p-1.5 hover:bg-surface-container-low border border-outline-variant rounded text-on-surface-variant"
+            className="p-1 hover:bg-surface-container-low border border-outline-variant rounded text-on-surface-variant transition-colors"
             title="Notification Center"
           >
-            <span className="material-symbols-outlined text-[18px]">notifications</span>
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-error text-white text-[9px] rounded-full flex items-center justify-center font-bold">
+            <span className="material-symbols-outlined text-[16px]">notifications</span>
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-error text-white text-[8px] rounded-full flex items-center justify-center font-bold">
               3
             </span>
           </button>
@@ -159,16 +158,16 @@ export const TopNavigation: React.FC = () => {
         <div className="relative">
           <div 
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex items-center gap-2 bg-surface-container border border-outline-variant rounded-full p-0.5 pr-2 cursor-pointer hover:bg-surface-container-high transition-colors"
+            className="flex items-center gap-1.5 bg-surface-container border border-outline-variant rounded p-0.5 pr-2 cursor-pointer hover:bg-surface-container-high transition-colors"
           >
-            <div className="w-7 h-7 rounded-full bg-primary-container flex items-center justify-center border border-outline-variant overflow-hidden">
+            <div className="w-6 h-6 rounded bg-primary-container flex items-center justify-center border border-outline-variant overflow-hidden">
               <img
                 className="w-full h-full object-cover"
                 alt="Profile Avatar"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyIWdvYS2TnsCVEP51p5GmwPSV0WbXtbGOwkA__cPhSP2WY2_fZKvbSaJUd7p3mFTv434Zr2jth-UqWoEn_3InBpXy46aEPqCrFL1YX1pE1iStRVc9730w3BcbjfOz4qNx2a2I-ic-UknrxGFRPnb7O-CRc6DihjL5VNEtcKirKts8GgH_8x3ei173o-SBubmAulK1-qctryD61vQZ36QCPQkafU9-V-udmRjUfZv3bj60Jvrtds43DsDgboOXWLGPWAIUqT5mFGA"
               />
             </div>
-            <span className="text-body-sm font-bold text-on-surface truncate max-w-[80px]">Collector</span>
+            <span className="text-[11px] font-bold text-on-surface truncate max-w-[80px]">{currentRole}</span>
           </div>
 
           {isProfileOpen && (

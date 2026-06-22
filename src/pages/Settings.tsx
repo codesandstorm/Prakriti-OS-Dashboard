@@ -2,7 +2,7 @@ import React from 'react';
 import { useStore } from '../hooks/useStore';
 
 export const Settings: React.FC = () => {
-  const { settings, updateSettings, currentRole } = useStore();
+  const { settings, updateSettings, currentRole, addToast } = useStore();
 
   return (
     <div className="flex-1 bg-surface p-gutter overflow-y-auto">
@@ -117,7 +117,7 @@ export const Settings: React.FC = () => {
         <div className="pt-6 border-t border-outline-variant flex justify-between items-center text-xs text-on-surface-variant">
           <span>Active context: role {currentRole} session</span>
           <button 
-            onClick={() => alert("Settings configuration saved locally.")}
+            onClick={() => addToast("Settings configuration saved locally.", "success")}
             className="bg-primary text-on-primary font-label-md text-xs font-bold px-4 py-2 rounded hover:bg-primary-container transition-colors"
           >
             SAVE CHANGES

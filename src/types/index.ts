@@ -2,9 +2,12 @@ export type UserRole =
   | 'Collector' 
   | 'Commissioner' 
   | 'Secretary' 
+  | 'Officer' 
   | 'District Officer' 
   | 'Environmental Officer' 
-  | 'Admin';
+  | 'Administrator'
+  | 'Admin'
+  | 'Research';
 
 export interface AppSettings {
   theme: 'light' | 'dark';
@@ -132,4 +135,5 @@ export interface AuditTrailLog {
   officerId: string;
   action: string;
   details: string;
+  actor?: string;
 }

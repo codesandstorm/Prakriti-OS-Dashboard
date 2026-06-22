@@ -12,7 +12,10 @@ export const GlobalSearchOverlay: React.FC = () => {
     clearRecentSearches,
     setSelectedOfficer,
     setSelectedVillage,
-    setSelectedScheme
+    setSelectedScheme,
+    setCurrentPage,
+    setDashboardFilter,
+    addToast
   } = useStore();
 
   const [inputVal, setInputVal] = useState('');
@@ -49,11 +52,26 @@ export const GlobalSearchOverlay: React.FC = () => {
 
   const allResults: { type: string; name: string; item: any; action: () => void }[] = [];
 
-  filteredDistricts.forEach(d => allResults.push({ type: 'District', name: d, item: d, action: () => alert(`Focussed Map on District: ${d}`) }));
-  filteredVillages.forEach(v => allResults.push({ type: 'Village', name: `${v.name} (${v.district})`, item: v, action: () => setSelectedVillage(v) }));
-  filteredOfficers.forEach(o => allResults.push({ type: 'Officer', name: `${o.name} - ${o.designation}`, item: o, action: () => setSelectedOfficer(o) }));
-  filteredSchemes.forEach(s => allResults.push({ type: 'Scheme', name: s.name, item: s, action: () => setSelectedScheme(s) }));
-  filteredAssets.forEach(a => allResults.push({ type: 'Asset', name: `${a.name} (${a.category})`, item: a, action: () => alert(`Showing metadata for asset: ${a.name}`) }));
+  filteredDistricts.forEach(d => allResults.push({ 
+    type: 'District', name: d, item: d, 
+    action: () => { setDashboardFilter('district', d); setCurrentPage('dashboard'); addToast(`Navigated to ${d} District Dashboard`, 'success'); } 
+  }));
+  filteredVillages.forEach(v => allResults.push({ 
+    type: 'Village', name: `${v.name} (${v.district})`, item: v, 
+    action: () => { setSelectedVillage(v); setCurrentPage('villages'); addToast(`Opened Inspector for ${v.name}`, 'success'); } 
+  }));
+  filteredOfficers.forEach(o => allResults.push({ 
+    type: 'Officer', name: `${o.name} - ${o.designation}`, item: o, 
+    action: () => { setSelectedOfficer(o); setCurrentPage('officers'); addToast(`Viewing profile of ${o.name}`, 'success'); } 
+  }));
+  filteredSchemes.forEach(s => allResults.push({ 
+    type: 'Scheme', name: s.name, item: s, 
+    action: () => { setSelectedScheme(s); setCurrentPage('analysis'); addToast(`Analyzing scheme: ${s.name}`, 'success'); } 
+  }));
+  filteredAssets.forEach(a => allResults.push({ 
+    type: 'Asset', name: `${a.name} (${a.category})`, item: a, 
+    action: () => { setCurrentPage('mission'); addToast(`Viewing GIS asset metadata: ${a.name}`, 'success'); } 
+  }));
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {

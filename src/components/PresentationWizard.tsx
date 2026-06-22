@@ -19,13 +19,13 @@ export const PresentationWizard: React.FC = () => {
     toggleLayer,
     activeLayers,
     setActiveBaseMap,
-    setPolicyBudgetModifier,
-    setReforestationTarget,
+    setAllSimulationParams,
     setAnalyticsTab,
     isOnline,
     toggleConnection,
     presentationMode,
-    setPresentationMode
+    setPresentationMode,
+    addToast
   } = useStore();
 
   const [activeTour, setActiveTour] = useState<'collector' | 'officer' | 'ai' | 'gis' | 'environmental' | null>(null);
@@ -98,8 +98,18 @@ export const PresentationWizard: React.FC = () => {
         description: "Simulating adjustments to conservation funding and reforestation targets to calculate immediate AI carbon outputs.",
         action: () => {
           setCurrentPage('mission');
-          setPolicyBudgetModifier(75);
-          setReforestationTarget(60);
+          setAllSimulationParams({
+            treePlantation: 50,
+            groundwaterExtraction: 50,
+            rainwaterHarvesting: 50,
+            inspectionFrequency: 50,
+            banStubbleBurning: false,
+            promoteDripIrrigation: false,
+            afforestationBudget: 50,
+            officerDeployment: 50,
+            newEnvironmentalScheme: false,
+            carbonCreditParticipation: false,
+          });
         }
       }
     ],
@@ -190,7 +200,7 @@ export const PresentationWizard: React.FC = () => {
   };
 
   const handleExportData = () => {
-    alert("Exporting active environment datasets to PDF/CSV format: Export completed successfully.");
+    window.print();
   };
 
   const handlePrint = () => {
@@ -198,7 +208,7 @@ export const PresentationWizard: React.FC = () => {
   };
 
   const triggerMockError = () => {
-    alert("SYSTEM WARNING: [API Error 503] Environmental Sensor Network temporarily offline. Re-routing telemetry queues...");
+    addToast("SYSTEM WARNING: [API Error 503] Environmental Sensor Network temporarily offline. Re-routing telemetry queues...", "error");
   };
 
   return (
@@ -208,8 +218,9 @@ export const PresentationWizard: React.FC = () => {
         <button
           onClick={() => setIsOpen(true)}
           className="bg-primary text-on-primary p-3 rounded-full shadow-lg flex items-center gap-2 hover:opacity-90 transition-all active:scale-95 cursor-pointer font-bold uppercase tracking-wider"
+          aria-label="Open Presentation Console"
         >
-          <span className="material-symbols-outlined text-[18px]">presentation_play</span>
+          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">presentation_play</span>
           <span>Open Presentation Console</span>
         </button>
       ) : (
@@ -217,11 +228,11 @@ export const PresentationWizard: React.FC = () => {
           {/* Header */}
           <div className="bg-primary text-on-primary px-4 py-2 flex justify-between items-center">
             <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider">
-              <span className="material-symbols-outlined text-[16px]">campaign</span>
+              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">campaign</span>
               <span>Presentation Suite</span>
             </div>
-            <button onClick={() => setIsOpen(false)} className="hover:opacity-80">
-              <span className="material-symbols-outlined text-[18px]">close</span>
+            <button onClick={() => setIsOpen(false)} className="hover:opacity-80" aria-label="Close Presentation Suite">
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
             </button>
           </div>
 
@@ -322,48 +333,54 @@ export const PresentationWizard: React.FC = () => {
                 <button
                   onClick={() => setPresentationMode(!presentationMode)}
                   className="py-1 px-2 border border-outline-variant hover:bg-surface-container rounded flex items-center justify-center gap-1 cursor-pointer font-bold uppercase text-[10px] tracking-wide"
+                  aria-label="Toggle Presentation Mode"
                 >
-                  <span className="material-symbols-outlined text-[14px]">fullscreen</span>
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">fullscreen</span>
                   <span>{presentationMode ? 'Standard UI' : 'Presentation'}</span>
                 </button>
 
                 <button
                   onClick={toggleConnection}
                   className="py-1 px-2 border border-outline-variant hover:bg-surface-container rounded flex items-center justify-center gap-1 cursor-pointer font-bold uppercase text-[10px] tracking-wide"
+                  aria-label="Toggle Connection Status"
                 >
-                  <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
+                  <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} aria-hidden="true" />
                   <span>{isOnline ? 'Drop Link' : 'Restore Link'}</span>
                 </button>
 
                 <button
                   onClick={handleExportData}
                   className="py-1 px-2 border border-outline-variant hover:bg-surface-container rounded flex items-center justify-center gap-1 cursor-pointer font-bold uppercase text-[10px] tracking-wide"
+                  aria-label="Export Data"
                 >
-                  <span className="material-symbols-outlined text-[14px]">download</span>
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">download</span>
                   <span>Export</span>
                 </button>
 
                 <button
                   onClick={handlePrint}
                   className="py-1 px-2 border border-outline-variant hover:bg-surface-container rounded flex items-center justify-center gap-1 cursor-pointer font-bold uppercase text-[10px] tracking-wide"
+                  aria-label="Print Screen"
                 >
-                  <span className="material-symbols-outlined text-[14px]">print</span>
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">print</span>
                   <span>Print</span>
                 </button>
 
                 <button
                   onClick={triggerMockError}
                   className="py-1 px-2 bg-error/15 text-error hover:bg-error/25 rounded flex items-center justify-center gap-1 cursor-pointer font-bold uppercase text-[10px] tracking-wide"
+                  aria-label="Trigger Mock Alert"
                 >
-                  <span className="material-symbols-outlined text-[14px]">warning</span>
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">warning</span>
                   <span>Trigger Alert</span>
                 </button>
 
                 <button
                   onClick={handleResetDemo}
                   className="py-1 px-2 bg-primary-container text-on-primary-fixed-variant hover:opacity-90 rounded flex items-center justify-center gap-1 cursor-pointer font-bold uppercase text-[10px] tracking-wide"
+                  aria-label="Reset Demo Application State"
                 >
-                  <span className="material-symbols-outlined text-[14px]">autorenew</span>
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">autorenew</span>
                   <span>Reset Demo</span>
                 </button>
               </div>

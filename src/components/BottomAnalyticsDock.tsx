@@ -3,12 +3,7 @@ import { useStore } from '../hooks/useStore';
 import { mockDistrictPerformance } from '../services/mpMockData';
 
 export const BottomAnalyticsDock: React.FC = () => {
-  const { 
-    isDockExpanded, 
-    setDockExpanded, 
-    activeDockTab, 
-    setActiveDockTab 
-  } = useStore();
+  const { activeDockTab, setActiveDockTab, isDockExpanded, setDockExpanded, addToast } = useStore();
 
   const tabs = [
     { id: 'analytics', label: 'District Metrics', icon: 'table_chart' },
@@ -109,10 +104,11 @@ export const BottomAnalyticsDock: React.FC = () => {
       case 'downloads':
         return (
           <div className="p-4 flex gap-4 text-body-sm font-bold">
-            <button onClick={() => alert("Downloading district metrics as CSV...")} className="px-4 py-2 bg-primary text-on-primary rounded flex items-center gap-2 hover:bg-primary-container transition-colors">
-              <span className="material-symbols-outlined">download</span> Download Metrics CSV
+            <button onClick={() => window.print()} className="px-4 py-2 bg-primary text-on-primary rounded flex items-center gap-2 hover:bg-primary-container transition-colors">
+              <span className="material-symbols-outlined text-[16px]">download</span>
+              Export Metrics
             </button>
-            <button onClick={() => alert("Downloading GIS layer package...")} className="px-4 py-2 border border-outline-variant text-on-surface rounded flex items-center gap-2 hover:bg-surface-container-low transition-colors">
+            <button onClick={() => addToast("GIS Layer Package download started.", "success")} className="px-4 py-2 border border-outline-variant text-on-surface rounded flex items-center gap-2 hover:bg-surface-container-low transition-colors">
               <span className="material-symbols-outlined">layers</span> Export GIS Layer SHP
             </button>
           </div>

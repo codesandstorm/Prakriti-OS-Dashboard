@@ -11,7 +11,8 @@ export const InspectorDrawer: React.FC = () => {
     selectedIncident,
     selectedVillage,
     selectedScheme,
-    selectedGisBoundary
+    selectedGisBoundary,
+    addToast
   } = useStore();
 
   const handleClose = () => {
@@ -32,8 +33,8 @@ export const InspectorDrawer: React.FC = () => {
               <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">{selectedOfficer.name}</h3>
               <p className="text-on-surface-variant text-body-md">{selectedOfficer.designation}</p>
               <div className="mt-4 flex gap-2">
-                <button onClick={() => alert("Connecting secure dialer...")} className="px-4 py-1.5 bg-primary text-on-primary rounded font-label-md text-label-md uppercase text-xs font-bold">Contact</button>
-                <button onClick={() => alert("Task creator active")} className="px-4 py-1.5 border border-outline text-on-surface rounded font-label-md text-label-md uppercase text-xs font-bold">Assign Task</button>
+                <button onClick={() => addToast("Secure dialer connected.", "info")} className="px-4 py-1.5 bg-primary text-on-primary rounded font-label-md text-label-md uppercase text-xs font-bold">Contact</button>
+                <button onClick={() => addToast("Task assigned successfully.", "success")} className="px-4 py-1.5 border border-outline text-on-surface rounded font-label-md text-label-md uppercase text-xs font-bold">Assign Task</button>
               </div>
             </div>
             {/* Stats */}

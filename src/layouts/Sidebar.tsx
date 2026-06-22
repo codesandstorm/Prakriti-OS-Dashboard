@@ -128,12 +128,12 @@ export const Sidebar: React.FC = () => {
                     setCurrentPage(item.id);
                   }
                 }}
-                className={`w-full flex items-center gap-4 py-2.5 transition-all text-left relative ${
-                  isSidebarExpanded ? 'px-4 justify-between' : 'justify-center'
+                className={`w-full flex items-center gap-4 py-2 transition-all text-left relative border-l-[3px] ${
+                  isSidebarExpanded ? 'px-3 justify-between' : 'justify-center'
                 } ${
                   isActive 
-                    ? 'text-primary-fixed bg-primary-container/90 active-tab-glow font-bold' 
-                    : 'text-on-primary-fixed-variant hover:text-primary-fixed hover:bg-primary-container/40'
+                    ? 'text-primary-fixed bg-primary-container/90 border-primary-fixed font-bold' 
+                    : 'text-on-primary-fixed-variant hover:text-primary-fixed hover:bg-primary-container/40 border-transparent'
                 }`}
                 title={!isSidebarExpanded ? item.label : undefined}
               >

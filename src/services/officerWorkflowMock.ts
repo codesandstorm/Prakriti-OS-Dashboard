@@ -14,6 +14,7 @@ export interface AuditTrailLog {
   officerId: string;
   action: string;
   details: string;
+  actor?: string;
 }
 
 export const initialOfficerTasks: OfficerTask[] = [
@@ -52,13 +53,15 @@ export const initialAuditLogs: AuditTrailLog[] = [
     timestamp: '2026-06-18 10:30',
     officerId: 'MP-OFF-401',
     action: 'Task Assigned',
-    details: 'Collector assigned: Audit Satpura Forest canopy reports.'
+    details: 'Collector assigned: Audit Satpura Forest canopy reports.',
+    actor: 'Collector Node'
   },
   {
     id: 'AUD-002',
     timestamp: '2026-06-12 14:15',
     officerId: 'MP-OFF-401',
     action: 'Status Approved',
-    details: 'Collector approved Pithampur Smog Tower inspection results.'
+    details: 'Collector approved Pithampur Smog Tower inspection results.',
+    actor: 'Collector Node'
   }
 ];

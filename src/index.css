@@ -57,18 +57,18 @@
   --spacing-baseline: 4px;
   --spacing-sidebar-expanded: 240px;
 
-  /* Card Design: Flat with 6px radius */
+  /* Card Design: Sharp Enterprise UI */
   --radius-DEFAULT: 0px;
-  --radius-lg: 6px;
-  --radius-xl: 6px;
+  --radius-lg: 2px;
+  --radius-xl: 4px;
   --radius-full: 9999px;
 
-  /* Eliminate heavy shadows globally */
-  --shadow-xs: none;
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-xl: none;
+  /* Subtle Ambient Shadows (Azure/ArcGIS style) */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.02);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.05), 0 10px 10px -5px rgba(0,0,0,0.02);
 }
 
 /* Material Icons styling */
@@ -149,6 +149,11 @@
   border-color: var(--color-outline-variant) !important;
 }
 
+input:focus, select:focus, textarea:focus, button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -1px;
+}
+
 .dark table {
   color: var(--color-on-surface) !important;
 }
@@ -191,4 +196,342 @@
 
 .dark .bg-surface-container-high {
   background-color: var(--color-surface-container-high) !important;
+}
+
+/* ========================================================
+   ENTERPRISE DASHBOARD GRID SYSTEM
+   12-column responsive grid with 8px base spacing
+   ======================================================== */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.col-span-1 { grid-column: span 1; }
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-4 { grid-column: span 4; }
+.col-span-5 { grid-column: span 5; }
+.col-span-6 { grid-column: span 6; }
+.col-span-7 { grid-column: span 7; }
+.col-span-8 { grid-column: span 8; }
+.col-span-9 { grid-column: span 9; }
+.col-span-10 { grid-column: span 10; }
+.col-span-11 { grid-column: span 11; }
+.col-span-12 { grid-column: span 12; }
+
+/* ========================================================
+   ENTERPRISE WIDGET CARD SYSTEM
+   Standardized container for all dashboard content
+   ======================================================== */
+
+.widget-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.widget-card:hover {
+  border-color: var(--color-outline);
+  box-shadow: var(--shadow-md);
+}
+
+.widget-card-expanded {
+  position: fixed;
+  inset: 24px;
+  z-index: 100;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+}
+
+.widget-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-low);
+  gap: 8px;
+  min-height: 36px;
+}
+
+.widget-card-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-on-surface);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.widget-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-lg);
+  color: var(--color-on-surface-variant);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.widget-action-btn:hover {
+  background: var(--color-surface-container);
+  color: var(--color-on-surface);
+  border-color: var(--color-outline-variant);
+}
+
+.widget-card-body {
+  flex: 1;
+  padding: 12px;
+  overflow: auto;
+}
+
+.widget-card-body-flush {
+  flex: 1;
+  overflow: auto;
+}
+
+.widget-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-top: 1px solid var(--color-outline-variant);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--color-on-surface-variant);
+  letter-spacing: 0.02em;
+  min-height: 24px;
+  background: var(--color-surface-container-lowest);
+}
+
+/* ========================================================
+   DASHBOARD SECTION DIVIDERS
+   ======================================================== */
+
+.section-divider {
+  grid-column: span 12;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0 0 0;
+}
+
+.section-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--color-outline-variant);
+}
+
+.section-divider-label {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant);
+  white-space: nowrap;
+}
+
+/* ========================================================
+   ENTERPRISE DATA TABLE
+   ======================================================== */
+
+.enterprise-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px;
+}
+
+.enterprise-table thead th {
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant);
+  background: var(--color-surface-container-low);
+  border-bottom: 2px solid var(--color-outline);
+  white-space: nowrap;
+}
+
+.enterprise-table tbody td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--color-outline-variant);
+  color: var(--color-on-surface);
+  vertical-align: middle;
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.enterprise-table tbody tr:hover td {
+  background: var(--color-surface-container);
+}
+
+.enterprise-table .cell-mono {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ========================================================
+   STATUS BADGE SYSTEM (Environmental Severity Only)
+   ======================================================== */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.status-badge-excellent { background: rgba(21,80,45,0.1); color: #15502d; }
+.status-badge-good { background: rgba(34,197,94,0.1); color: #166534; }
+.status-badge-fair { background: rgba(245,158,11,0.1); color: #92400e; }
+.status-badge-poor { background: rgba(234,88,12,0.1); color: #c2410c; }
+.status-badge-critical { background: rgba(220,38,38,0.1); color: #dc2626; }
+.status-badge-neutral { background: var(--color-surface-container); color: var(--color-on-surface-variant); }
+
+.dark .status-badge-excellent { background: rgba(21,80,45,0.25); color: #86efac; }
+.dark .status-badge-good { background: rgba(34,197,94,0.15); color: #86efac; }
+.dark .status-badge-fair { background: rgba(245,158,11,0.15); color: #fcd34d; }
+.dark .status-badge-poor { background: rgba(234,88,12,0.15); color: #fb923c; }
+.dark .status-badge-critical { background: rgba(220,38,38,0.2); color: #fca5a5; }
+
+/* ========================================================
+   GAUGE / SCORE DISPLAY
+   ======================================================== */
+
+.gauge-ring {
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================================
+   NEUTRAL METRIC CELL
+   ======================================================== */
+
+.metric-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 4px;
+}
+
+.metric-cell-label {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant);
+}
+
+.metric-cell-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  line-height: 1.2;
+}
+
+.metric-cell-trend {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 10px;
+  color: var(--color-on-surface-variant);
+}
+
+/* ========================================================
+   DASHBOARD ALERT BAR
+   ======================================================== */
+
+.alert-bar-critical {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 12px;
+  grid-column: span 12;
+  border-radius: 4px;
+}
+
+.dark .alert-bar-critical {
+  background: rgba(220,38,38,0.15);
+  border: 1px solid rgba(220,38,38,0.3);
+  color: #fca5a5;
+}
+
+/* ========================================================
+   SPARKLINE BAR
+   ======================================================== */
+
+.sparkline-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 32px;
+  width: 100%;
+}
+
+.sparkline-bar-segment {
+  flex: 1;
+  background: var(--color-outline-variant);
+  border-radius: 1px 1px 0 0;
+  transition: background-color 0.15s ease;
+}
+
+.sparkline-bar-segment-active {
+  background: var(--color-primary);
+}
+
+/* ========================================================
+   TIMELINE COMPONENT
+   ======================================================== */
+
+.timeline-track {
+  position: relative;
+  padding-left: 20px;
+  border-left: 2px solid var(--color-outline-variant);
+  margin-left: 8px;
+}
+
+.timeline-node {
+  position: absolute;
+  left: -7px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--color-surface);
+  background: var(--color-outline);
+}
+
+.timeline-node-active {
+  background: var(--color-primary);
 }

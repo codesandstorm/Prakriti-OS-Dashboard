@@ -2,7 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useStore } from '../hooks/useStore';
 
 export const CommandPalette: React.FC = () => {
-  const { isCommandPaletteOpen, setCommandPaletteOpen, setCurrentPage } = useStore();
+  const { 
+    isCommandPaletteOpen, 
+    setCommandPaletteOpen, 
+    setCurrentPage, 
+    setDashboardFilter,
+    addToast
+  } = useStore();
   const [search, setSearch] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -37,8 +43,8 @@ export const CommandPalette: React.FC = () => {
     { name: 'Go to Officer Directory', icon: 'badge', action: () => setCurrentPage('officers') },
     { name: 'Go to Reports Library', icon: 'description', action: () => setCurrentPage('reports') },
     { name: 'Go to System Settings', icon: 'settings', action: () => setCurrentPage('settings') },
-    { name: 'Filter: Show All Jurisdictions', icon: 'filter_alt', action: () => alert('Quick Filter: All Jurisdictions applied') },
-    { name: 'Filter: Focus Indore Region', icon: 'location_city', action: () => alert('Quick Filter: Indore District focused') },
+    { name: 'Filter: Show All Jurisdictions', icon: 'filter_alt', action: () => { setDashboardFilter('district', 'All'); addToast('Quick Filter: All Jurisdictions applied', 'info'); } },
+    { name: 'Filter: Focus Indore Region', icon: 'location_city', action: () => { setDashboardFilter('district', 'Indore'); addToast('Quick Filter: Indore District focused', 'success'); } },
     { name: 'Mitigation: Launch AI Predictive Modeling', icon: 'auto_awesome', action: () => setCurrentPage('analysis') }
   ];
 

@@ -36,7 +36,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
     if (onExport) {
       onExport();
     } else {
-      alert(`Exporting telemetry metrics for widget "${title}" as CSV...`);
+      window.print();
     }
   };
 

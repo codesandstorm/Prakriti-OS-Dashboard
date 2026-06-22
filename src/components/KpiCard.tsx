@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { ResponsiveContainer, LineChart, Line } from 'recharts';
 import type { KpiMetric } from '../types';
+import { useStore } from '../hooks/useStore';
 
 interface ExtendedKpiProps extends KpiMetric {
   historicalComparison?: string;
@@ -9,6 +11,11 @@ interface ExtendedKpiProps extends KpiMetric {
   isLoading?: boolean;
   isErrorState?: boolean;
   isEmpty?: boolean;
+  targetValue?: string | number;
+  previousPeriodValue?: string | number;
+  onDrillDown?: () => void;
+  confidence?: number;
+  dataSource?: string;
 }
 
 export const KpiCard: React.FC<ExtendedKpiProps> = ({
@@ -23,9 +30,15 @@ export const KpiCard: React.FC<ExtendedKpiProps> = ({
   tooltipText = "Calculated from environmental telemetry sensors.",
   isLoading = false,
   isErrorState = false,
-  isEmpty = false
+  isEmpty = false,
+  targetValue,
+  previousPeriodValue,
+  onDrillDown,
+  confidence = 98,
+  dataSource = "Telemetry Node"
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
+  const { addToast } = useStore();
 
   // Status Colors Mapping
   const statusColorMap = {
@@ -35,6 +48,8 @@ export const KpiCard: React.FC<ExtendedKpiProps> = ({
     poor: 'bg-orange-500',
     critical: 'bg-red-600',
   };
+
+  const sparklineData = sparklineValues.map((v, i) => ({ value: v, index: i }));
 
   if (isLoading) {
     return (
@@ -82,9 +97,10 @@ export const KpiCard: React.FC<ExtendedKpiProps> = ({
   }
 
   const badgeColorClass = statusColorMap[statusIndicator] || 'bg-green-500';
+  const sparklineStroke = statusIndicator === 'critical' ? '#dc2626' : statusIndicator === 'excellent' ? '#15803d' : 'var(--color-primary)';
 
   return (
-    <div className="bg-white border border-outline-variant p-4 rounded-lg flex flex-col h-[200px] justify-between hover:border-primary transition-colors duration-200 relative select-none">
+    <div className="group bg-white border border-outline-variant p-4 rounded-lg flex flex-col h-[200px] justify-between hover:border-primary transition-colors duration-200 relative select-none">
       
       {/* Top Details & Tooltips */}
       <div className="space-y-1">
@@ -108,20 +124,36 @@ export const KpiCard: React.FC<ExtendedKpiProps> = ({
                 <span className="material-symbols-outlined text-[14px]">info</span>
               </button>
               {showTooltip && (
-                <div className="absolute right-0 top-5 w-40 bg-inverse-surface text-inverse-on-surface text-[10px] p-2 rounded shadow-lg z-50 leading-relaxed font-normal">
+                <div className="absolute right-0 top-5 w-48 bg-inverse-surface text-inverse-on-surface text-[10px] p-2.5 rounded shadow-lg z-50 leading-relaxed font-normal">
                   {tooltipText}
+                  {targetValue !== undefined && <div className="mt-1 font-bold">Target: {targetValue}</div>}
+                  {previousPeriodValue !== undefined && <div className="font-bold">Prev Period: {previousPeriodValue}</div>}
                 </div>
               )}
             </div>
 
-            {/* Export shortcut */}
-            <button 
-              onClick={() => alert(`Exporting ${label} data packet...`)}
-              className="text-on-surface-variant hover:text-primary transition-colors"
-              title="Export Metric"
-            >
-              <span className="material-symbols-outlined text-[14px]">download</span>
-            </button>
+            {/* Action Controls */}
+            <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div 
+                className={`flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border ${
+                  confidence >= 95 ? 'bg-green-500/10 text-green-600 border-green-500/20' : 
+                  confidence >= 80 ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' : 
+                  'bg-red-500/10 text-red-600 border-red-500/20'
+                }`}
+                title={`Confidence Score: ${confidence}%`}
+              >
+                <span className="material-symbols-outlined text-[9px]">verified_user</span>
+                {confidence}%
+              </div>
+              
+              <button 
+                onClick={(e) => { e.stopPropagation(); window.print(); }}
+                className="text-on-surface-variant hover:text-primary transition-colors"
+                title="Export Metric"
+              >
+                <span className="material-symbols-outlined text-[14px]">download</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -131,37 +163,42 @@ export const KpiCard: React.FC<ExtendedKpiProps> = ({
         </div>
       </div>
 
-      {/* Mini Sparkline Graph */}
-      <div className="h-10 w-full flex items-end gap-0.5 bg-surface-container-low rounded-xs p-1">
-        {sparklineValues.map((val, idx) => {
-          const isHighest = val === Math.max(...sparklineValues);
-          const barColor = isHighest ? 'bg-primary' : 'bg-primary/20';
-          return (
-            <div 
-              key={idx} 
-              className={`flex-1 ${barColor} rounded-xs`} 
-              style={{ height: `${val}%` }}
+      {/* Recharts Mini Sparkline Graph */}
+      <div className="h-12 w-full mt-2">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={sparklineData}>
+            <Line 
+              type="monotone" 
+              dataKey="value" 
+              stroke={sparklineStroke} 
+              strokeWidth={2} 
+              dot={false}
+              isAnimationActive={false}
             />
-          );
-        })}
+          </LineChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Trend & Historical Comparison */}
-      <div className="text-[10px] leading-tight text-on-surface-variant">
+      <div className="text-[10px] leading-tight text-on-surface-variant mt-2">
         <div className="flex items-center gap-1 font-bold">
-          <span className={`material-symbols-outlined text-[12px] ${trendDirection === 'up' ? 'text-green-600' : 'text-red-500'}`}>
-            {trendDirection === 'up' ? 'arrow_upward' : 'arrow_downward'}
+          <span className={`material-symbols-outlined text-[12px] ${trendDirection === 'up' ? 'text-green-600' : trendDirection === 'down' ? 'text-red-500' : 'text-yellow-500'}`}>
+            {trendDirection === 'up' ? 'arrow_upward' : trendDirection === 'down' ? 'arrow_downward' : 'horizontal_rule'}
           </span>
-          <span className={trendDirection === 'up' ? 'text-green-600' : 'text-red-500'}>{trend}</span>
+          <span className={trendDirection === 'up' ? 'text-green-600' : trendDirection === 'down' ? 'text-red-500' : 'text-yellow-500'}>{trend}</span>
         </div>
         <span className="text-[9px] text-on-surface-variant/80 block mt-0.5">{historicalComparison}</span>
       </div>
 
-      {/* Footer metadata & Drill-down */}
-      <div className="flex justify-between items-center text-[9px] border-t border-outline-variant/30 pt-2 text-on-surface-variant">
-        <span>Updated {lastUpdated}</span>
+      {/* Footer Area */}
+      <div className="flex justify-between items-center text-[9px] border-t border-outline-variant/30 pt-2 text-on-surface-variant mt-auto">
+        <div className="flex items-center gap-1.5 truncate pr-2">
+          <span className="font-semibold">{dataSource}</span>
+          <span>•</span>
+          <span>Updated {lastUpdated}</span>
+        </div>
         <button 
-          onClick={() => alert(`Drilling down into telemetry charts for ${label}`)}
+          onClick={onDrillDown ? onDrillDown : () => addToast(`Drilling down into telemetry charts for ${label}`, 'info')}
           className="flex items-center gap-0.5 text-primary font-bold uppercase hover:underline cursor-pointer"
         >
           <span>Drill Down</span>
