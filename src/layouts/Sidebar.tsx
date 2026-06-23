@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../hooks/useStore';
 
 interface NavItem {
-  id: 'dashboard' | 'mission' | 'analysis' | 'officers' | 'settings' | 'reports' | 'villages';
+  id: 'dashboard' | 'active-alerts' | 'gis-intelligence' | 'analytics-desk' | 'ai-decision-center' | 'reports-library' | 'schemes-grants' | 'villages' | 'officers' | 'settings';
   label: string;
   icon: string;
   roles?: string[];
@@ -27,12 +27,12 @@ export const Sidebar: React.FC = () => {
       icon: 'grid_view' 
     },
     { 
-      id: 'mission', 
+      id: 'gis-intelligence', 
       label: 'GIS Intelligence', 
       icon: 'map',
       children: [
-        { label: 'Satellite Feed', action: () => setCurrentPage('mission') },
-        { label: 'Telemetry Grid', action: () => setCurrentPage('mission') }
+        { label: 'Satellite Feed', action: () => setCurrentPage('gis-intelligence') },
+        { label: 'Telemetry Grid', action: () => setCurrentPage('gis-intelligence') }
       ]
     },
     { 
@@ -42,29 +42,29 @@ export const Sidebar: React.FC = () => {
       roles: ['Collector', 'Commissioner', 'Secretary', 'District Officer', 'Admin']
     },
     { 
-      id: 'analysis', 
+      id: 'ai-decision-center', 
       label: 'AI Decision Center', 
       icon: 'auto_awesome',
       roles: ['Collector', 'Commissioner', 'Secretary', 'Admin']
     },
     { 
-      id: 'reports', 
+      id: 'schemes-grants', 
       label: 'Schemes & Grants', 
       icon: 'payments',
       roles: ['Collector', 'Commissioner', 'Secretary', 'Admin']
     },
     { 
-      id: 'mission', 
+      id: 'active-alerts', 
       label: 'Active Alerts', 
       icon: 'notifications_active' 
     },
     { 
-      id: 'analysis', 
+      id: 'analytics-desk', 
       label: 'Analytics Desk', 
       icon: 'bar_chart' 
     },
     { 
-      id: 'reports', 
+      id: 'reports-library', 
       label: 'Reports Library', 
       icon: 'description' 
     },

@@ -4,11 +4,14 @@ import { apiClient, setTokens, clearTokens } from './apiClient';
 
 export const pageAccessRules: Record<string, UserRole[]> = {
   dashboard: ['Collector', 'Commissioner', 'Secretary', 'District Officer', 'Environmental Officer', 'Admin'],
-  mission: ['Collector', 'Commissioner', 'Secretary', 'District Officer', 'Environmental Officer', 'Admin'],
+  'active-alerts': ['Collector', 'Commissioner', 'Secretary', 'District Officer', 'Environmental Officer', 'Admin'],
+  'gis-intelligence': ['Collector', 'Commissioner', 'Secretary', 'District Officer', 'Environmental Officer', 'Admin'],
+  'analytics-desk': ['Collector', 'Commissioner', 'Secretary', 'Admin'],
+  'ai-decision-center': ['Collector', 'Commissioner', 'Secretary', 'Admin'],
+  'reports-library': ['Collector', 'Commissioner', 'Secretary', 'Admin'],
+  'schemes-grants': ['Collector', 'Commissioner', 'Secretary', 'Admin'],
   villages: ['Collector', 'Commissioner', 'Secretary', 'District Officer', 'Admin'],
-  analysis: ['Collector', 'Commissioner', 'Secretary', 'Admin'],
   officers: ['Collector', 'Commissioner', 'Admin'],
-  reports: ['Collector', 'Commissioner', 'Secretary', 'Admin'],
   settings: ['Collector', 'Commissioner', 'Secretary', 'District Officer', 'Environmental Officer', 'Admin']
 };
 

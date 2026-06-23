@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useStore } from '../hooks/useStore';
 import { MapContainer } from '../modules/gis/MapContainer';
 import { mpGisBoundaries, mpGisSensors, mockTimelineData } from '../services/gisMockData';
@@ -42,6 +42,48 @@ const aqiLabel = (score: number | undefined) => {
   if (score <= 200) return { text: 'Moderate', cls: 'status-badge status-badge-fair' };
   if (score <= 300) return { text: 'Poor', cls: 'status-badge status-badge-poor' };
   return { text: 'Hazardous', cls: 'status-badge status-badge-critical' };
+};
+
+const LiveTelemetryFeed = () => {
+  const { coordinates } = useStore();
+  const [telemetry, setTelemetry] = useState({ p_score: 92.4, carbon_ppm: 410, gw_depth: -22.4, packet_loss: 0.01 });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTelemetry(prev => ({
+        p_score: prev.p_score + (Math.random() * 0.2 - 0.1),
+        carbon_ppm: prev.carbon_ppm + (Math.random() * 2 - 1),
+        gw_depth: prev.gw_depth + (Math.random() * 0.1 - 0.05),
+        packet_loss: Math.random() * 0.05
+      }));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex gap-8 items-center text-on-surface font-mono-data">
+      <div className="flex flex-col">
+        <span className="text-[8px] text-on-surface-variant font-bold uppercase tracking-widest font-sans">Sys Status</span>
+        <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" /> <span className="font-bold text-green-500">NOMINAL</span></div>
+      </div>
+      <div className="flex flex-col w-20">
+        <span className="text-[8px] text-on-surface-variant font-bold uppercase tracking-widest font-sans">P-Score (Avg)</span>
+        <span>{telemetry.p_score.toFixed(2)}</span>
+      </div>
+      <div className="flex flex-col w-20">
+        <span className="text-[8px] text-on-surface-variant font-bold uppercase tracking-widest font-sans">Carbon (PPM)</span>
+        <span>{telemetry.carbon_ppm.toFixed(1)}</span>
+      </div>
+      <div className="flex flex-col w-20">
+        <span className="text-[8px] text-on-surface-variant font-bold uppercase tracking-widest font-sans">GW Depth</span>
+        <span className={telemetry.gw_depth < -25 ? 'text-red-500' : ''}>{telemetry.gw_depth.toFixed(2)}m</span>
+      </div>
+      <div className="flex flex-col w-20">
+        <span className="text-[8px] text-on-surface-variant font-bold uppercase tracking-widest font-sans">Coords</span>
+        <span className="text-[10px]">{coordinates}</span>
+      </div>
+    </div>
+  );
 };
 
 export const MissionControl: React.FC = () => {
@@ -428,18 +470,8 @@ export const MissionControl: React.FC = () => {
         {/* Bottom Status Bar + Timeline */}
         <div className="bg-surface border-t border-outline-variant px-4 py-2 flex items-center gap-6 shrink-0 z-10">
           {/* Telemetry Readout */}
-          <div className="flex gap-6 text-[10px]">
-            {[
-              { label: 'Coordinates', value: coordinates },
-              { label: 'Active Layers', value: `${activeLayers.length} enabled` },
-              { label: 'Base Map', value: activeBaseMap.charAt(0).toUpperCase() + activeBaseMap.slice(1) },
-              { label: 'Sensors', value: `${mpGisSensors.filter(s => s.status === 'optimal').length}/${mpGisSensors.length} OK` },
-            ].map((item, i) => (
-              <div key={i} className="flex flex-col">
-                <span className="text-[8px] text-on-surface-variant font-bold uppercase tracking-widest">{item.label}</span>
-                <span className="text-on-surface font-semibold" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{item.value}</span>
-              </div>
-            ))}
+          <div className="flex gap-6 text-[10px] items-center">
+            <LiveTelemetryFeed />
           </div>
 
           {/* Timeline Slider */}

@@ -4,6 +4,7 @@ import { AppShell } from './layouts/AppShell';
 import { CommandPalette } from './components/CommandPalette';
 import { PresentationWizard } from './components/PresentationWizard';
 import { GlobalLoadingSkeleton } from './components/GlobalLoadingSkeleton';
+import { GlobalProcessingOverlay } from './components/GlobalProcessingOverlay';
 import { authService } from './services/authService';
 
 // Lazy loaded modules for enterprise performance
@@ -13,7 +14,10 @@ const Analysis = React.lazy(() => import('./pages/Analysis').then(module => ({ d
 const Officers = React.lazy(() => import('./pages/Officers').then(module => ({ default: module.Officers })));
 const Settings = React.lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
 const Villages = React.lazy(() => import('./pages/Villages').then(module => ({ default: module.Villages })));
-const Reports = React.lazy(() => import('./pages/Reports').then(module => ({ default: module.Reports })));
+const ActiveAlerts = React.lazy(() => import('./pages/ActiveAlerts').then(module => ({ default: module.ActiveAlerts })));
+const AiDecisionCenter = React.lazy(() => import('./pages/AiDecisionCenter').then(module => ({ default: module.AiDecisionCenter })));
+const ReportsLibrary = React.lazy(() => import('./pages/ReportsLibrary').then(module => ({ default: module.ReportsLibrary })));
+const SchemesGrants = React.lazy(() => import('./pages/SchemesGrants').then(module => ({ default: module.SchemesGrants })));
 
 export const App: React.FC = () => {
   const { currentPage, currentRole } = useStore();
@@ -35,14 +39,20 @@ export const App: React.FC = () => {
     switch (currentPage) {
       case 'dashboard':
         return <Dashboard />;
-      case 'mission':
+      case 'active-alerts':
+        return <ActiveAlerts />;
+      case 'gis-intelligence':
         return <MissionControl />;
-      case 'analysis':
+      case 'analytics-desk':
         return <Analysis />;
+      case 'ai-decision-center':
+        return <AiDecisionCenter />;
+      case 'reports-library':
+        return <ReportsLibrary />;
+      case 'schemes-grants':
+        return <SchemesGrants />;
       case 'officers':
         return <Officers />;
-      case 'reports':
-        return <Reports />;
       case 'settings':
         return <Settings />;
       case 'villages':
@@ -57,6 +67,7 @@ export const App: React.FC = () => {
       <Suspense fallback={<GlobalLoadingSkeleton />}>
         {renderPage()}
       </Suspense>
+      <GlobalProcessingOverlay />
       <CommandPalette />
       <PresentationWizard />
     </AppShell>

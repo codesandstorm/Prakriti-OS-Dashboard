@@ -7,7 +7,7 @@ import { mpOfficers } from '../services/mpMockData';
 // 1. Officer Panel
 // -----------------------------------------------------------
 export const OfficerPanelWidget: React.FC = () => {
-  const { addToast, presentationMode } = useStore();
+  const { addToast, presentationMode, setProcessing } = useStore();
   return (
     <WidgetCard
       title="Field Operations Command"
@@ -70,7 +70,13 @@ export const OfficerPanelWidget: React.FC = () => {
                 </td>
                 <td>
                   <button 
-                    onClick={() => addToast(`Dispatched Officer ${officer.name} to field.`, 'success')}
+                    onClick={() => {
+                      setProcessing(true, `Connecting to Field Comm for ${officer.name}...`);
+                      setTimeout(() => {
+                        setProcessing(false);
+                        addToast(`Dispatched Officer ${officer.name} to field.`, 'success');
+                      }, 1500);
+                    }}
                     disabled={presentationMode}
                     className="text-[10px] font-bold text-primary uppercase hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -90,24 +96,36 @@ export const OfficerPanelWidget: React.FC = () => {
 // 2. Alert Center Widget
 // -----------------------------------------------------------
 export const AlertCenterWidget: React.FC = () => {
-  const { incidents, resolveIncident, escalateIncident, assignIncident, addToast, setSelectedIncident, presentationMode } = useStore();
+  const { incidents, resolveIncident, escalateIncident, assignIncident, addToast, setSelectedIncident, presentationMode, setProcessing } = useStore();
 
   const handleResolve = (id: string) => {
     if (presentationMode) { addToast("Locked in Presentation Mode", "error"); return; }
-    resolveIncident(id);
-    addToast('Incident successfully resolved and logged.', 'success');
+    setProcessing(true, "Resolving Incident...");
+    setTimeout(() => {
+      resolveIncident(id);
+      addToast('Incident successfully resolved and logged.', 'success');
+      setProcessing(false);
+    }, 1500);
   };
 
   const handleEscalate = (id: string) => {
     if (presentationMode) { addToast("Locked in Presentation Mode", "error"); return; }
-    escalateIncident(id);
-    addToast('Incident escalated to CRITICAL severity.', 'error');
+    setProcessing(true, "Escalating Alert to CRITICAL...");
+    setTimeout(() => {
+      escalateIncident(id);
+      addToast('Incident escalated to CRITICAL severity.', 'error');
+      setProcessing(false);
+    }, 1200);
   };
 
   const handleAssign = (id: string) => {
     if (presentationMode) { addToast("Locked in Presentation Mode", "error"); return; }
-    assignIncident(id, 'OFC-001'); // arbitrary assignment for demo
-    addToast('Officer assigned to incident.', 'success');
+    setProcessing(true, "Dispatching Nearest Available Officer...");
+    setTimeout(() => {
+      assignIncident(id, 'OFC-001'); // arbitrary assignment for demo
+      addToast('Officer assigned to incident.', 'success');
+      setProcessing(false);
+    }, 1800);
   };
 
   return (
@@ -180,7 +198,7 @@ export const AlertCenterWidget: React.FC = () => {
 // 3. Decision Centre Widget
 // -----------------------------------------------------------
 export const DecisionCentreWidget: React.FC = () => {
-  const { collectorNotes, setCollectorNotes, addToast, addOfficerAudit, presentationMode } = useStore();
+  const { collectorNotes, setCollectorNotes, addToast, addOfficerAudit, presentationMode, setProcessing } = useStore();
   const [draftNote, setDraftNote] = useState(collectorNotes);
 
   const [decisions, setDecisions] = useState([
@@ -191,22 +209,30 @@ export const DecisionCentreWidget: React.FC = () => {
 
   const handleSaveNote = () => {
     if (presentationMode) { addToast("Locked in Presentation Mode", "error"); return; }
-    setCollectorNotes(draftNote);
-    addToast('Collector scratchpad saved securely.', 'success');
+    setProcessing(true, "Encrypting & Saving Note...");
+    setTimeout(() => {
+      setCollectorNotes(draftNote);
+      addToast('Collector scratchpad saved securely.', 'success');
+      setProcessing(false);
+    }, 1000);
   };
 
   const handleAction = (id: number, type: string) => {
     if (presentationMode) { addToast("Locked in Presentation Mode", "error"); return; }
-    setDecisions(decisions.filter(d => d.id !== id));
-    addToast(`${type} executed and logged to audit trail.`, 'success');
-    addOfficerAudit({
-      id: `audit-${Date.now()}`,
-      timestamp: new Date().toLocaleTimeString(),
-      action: `${type} Executed`,
-      actor: 'Collector',
-      officerId: 'COL-001',
-      details: `Action ID ${id} finalized.`
-    });
+    setProcessing(true, `Processing ${type} Action...`);
+    setTimeout(() => {
+      setDecisions(decisions.filter(d => d.id !== id));
+      addToast(`${type} executed and logged to audit trail.`, 'success');
+      addOfficerAudit({
+        id: `audit-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        action: `${type} Executed`,
+        actor: 'Collector',
+        officerId: 'COL-001',
+        details: `Action ID ${id} finalized.`
+      });
+      setProcessing(false);
+    }, 1800);
   };
 
   return (

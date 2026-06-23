@@ -38,14 +38,14 @@ export const CommandPalette: React.FC = () => {
 
   const commands = [
     { name: 'Go to Operational Dashboard', icon: 'dashboard', action: () => setCurrentPage('dashboard') },
-    { name: 'Go to GIS Intelligence Map', icon: 'map', action: () => setCurrentPage('mission') },
-    { name: 'Go to Environmental Analysis & Trends', icon: 'bar_chart', action: () => setCurrentPage('analysis') },
+    { name: 'Go to GIS Intelligence Map', icon: 'map', action: () => setCurrentPage('gis-intelligence') },
+    { name: 'Go to Environmental Analysis & Trends', icon: 'bar_chart', action: () => setCurrentPage('analytics-desk') },
     { name: 'Go to Officer Directory', icon: 'badge', action: () => setCurrentPage('officers') },
-    { name: 'Go to Reports Library', icon: 'description', action: () => setCurrentPage('reports') },
+    { name: 'Go to Reports Library', icon: 'description', action: () => setCurrentPage('reports-library') },
     { name: 'Go to System Settings', icon: 'settings', action: () => setCurrentPage('settings') },
     { name: 'Filter: Show All Jurisdictions', icon: 'filter_alt', action: () => { setDashboardFilter('district', 'All'); addToast('Quick Filter: All Jurisdictions applied', 'info'); } },
     { name: 'Filter: Focus Indore Region', icon: 'location_city', action: () => { setDashboardFilter('district', 'Indore'); addToast('Quick Filter: Indore District focused', 'success'); } },
-    { name: 'Mitigation: Launch AI Predictive Modeling', icon: 'auto_awesome', action: () => setCurrentPage('analysis') }
+    { name: 'Mitigation: Launch AI Predictive Modeling', icon: 'auto_awesome', action: () => setCurrentPage('analytics-desk') }
   ];
 
   const filteredCommands = commands.filter((cmd) =>

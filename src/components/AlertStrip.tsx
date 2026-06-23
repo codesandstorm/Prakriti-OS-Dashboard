@@ -17,7 +17,7 @@ export const AlertStrip: React.FC = () => {
 
   const handleInspect = (inc: any) => {
     setSelectedIncident(inc);
-    setCurrentPage('mission');
+    setCurrentPage('active-alerts');
   };
 
   if (activeIncidents.length === 0) return null;

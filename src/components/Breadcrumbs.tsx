@@ -11,18 +11,16 @@ export const Breadcrumbs: React.FC = () => {
 
   const getPageLabel = () => {
     switch (currentPage) {
-      case 'dashboard':
-        return 'Overview';
-      case 'mission':
-        return 'GIS Intelligence';
-      case 'analysis':
-        return 'Analytics Desk';
-      case 'officers':
-        return 'Officer Directory';
-      case 'reports':
-        return 'Reports Library';
-      case 'settings':
-        return 'System Settings';
+      case 'dashboard': return 'Overview';
+      case 'active-alerts': return 'Active Alerts';
+      case 'gis-intelligence': return 'GIS Intelligence';
+      case 'analytics-desk': return 'Analytics Desk';
+      case 'ai-decision-center': return 'AI Decision Center';
+      case 'reports-library': return 'Reports Library';
+      case 'schemes-grants': return 'Schemes & Grants';
+      case 'villages': return 'Village Intelligence';
+      case 'officers': return 'Officer Directory';
+      case 'settings': return 'System Settings';
       default:
         return 'Overview';
     }
@@ -45,7 +43,7 @@ export const Breadcrumbs: React.FC = () => {
       label: selectedOfficer.name,
       action: () => {}
     });
-  } else if (currentPage === 'mission' && selectedIncident) {
+  } else if (currentPage === 'active-alerts' && selectedIncident) {
     crumbs.push({
       label: `Incident ${selectedIncident.code}`,
       action: () => {}

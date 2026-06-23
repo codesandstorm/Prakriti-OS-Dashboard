@@ -66,11 +66,11 @@ export const GlobalSearchOverlay: React.FC = () => {
   }));
   filteredSchemes.forEach(s => allResults.push({ 
     type: 'Scheme', name: s.name, item: s, 
-    action: () => { setSelectedScheme(s); setCurrentPage('analysis'); addToast(`Analyzing scheme: ${s.name}`, 'success'); } 
+    action: () => { setSelectedScheme(s); setCurrentPage('analytics-desk'); addToast(`Analyzing scheme: ${s.name}`, 'success'); } 
   }));
   filteredAssets.forEach(a => allResults.push({ 
     type: 'Asset', name: `${a.name} (${a.category})`, item: a, 
-    action: () => { setCurrentPage('mission'); addToast(`Viewing GIS asset metadata: ${a.name}`, 'success'); } 
+    action: () => { setCurrentPage('gis-intelligence'); addToast(`Viewing GIS asset metadata: ${a.name}`, 'success'); } 
   }));
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

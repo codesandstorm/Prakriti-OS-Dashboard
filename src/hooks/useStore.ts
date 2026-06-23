@@ -28,8 +28,8 @@ interface CommandCenterState {
   resetSessionTime: () => void;
 
   // Navigation & History
-  currentPage: 'dashboard' | 'mission' | 'analysis' | 'officers' | 'settings' | 'reports' | 'villages';
-  setCurrentPage: (page: 'dashboard' | 'mission' | 'analysis' | 'officers' | 'settings' | 'reports' | 'villages') => void;
+  currentPage: 'dashboard' | 'active-alerts' | 'gis-intelligence' | 'analytics-desk' | 'ai-decision-center' | 'reports-library' | 'schemes-grants' | 'villages' | 'officers' | 'settings';
+  setCurrentPage: (page: 'dashboard' | 'active-alerts' | 'gis-intelligence' | 'analytics-desk' | 'ai-decision-center' | 'reports-library' | 'schemes-grants' | 'villages' | 'officers' | 'settings') => void;
   navigationHistory: string[];
   clearNavigationHistory: () => void;
   isSidebarExpanded: boolean;
@@ -132,6 +132,9 @@ interface CommandCenterState {
   dashboardFilters: DashboardFilters;
   setDashboardFilter: (key: keyof DashboardFilters, value: string) => void;
   isDashboardLoading: boolean;
+  isProcessing: boolean;
+  processingMessage: string;
+  setProcessing: (isProcessing: boolean, message?: string) => void;
   setDashboardLoading: (loading: boolean) => void;
 
   // AI Scenario Simulation variables
@@ -271,7 +274,7 @@ export const useStore = create<CommandCenterState>()(
         if (role === 'Officer') {
           nextPage = 'officers';
         } else if (role === 'Research') {
-          nextPage = 'mission';
+          nextPage = 'gis-intelligence';
         } else if (role === 'Collector' || role === 'Admin') {
           nextPage = 'dashboard';
         }
@@ -469,6 +472,9 @@ export const useStore = create<CommandCenterState>()(
         dashboardFilters: { ...state.dashboardFilters, [key]: value }
       })),
       isDashboardLoading: false,
+      isProcessing: false,
+      processingMessage: '',
+      setProcessing: (isProcessing, message = 'Processing...') => set({ isProcessing, processingMessage: message }),
       setDashboardLoading: (loading) => set({ isDashboardLoading: loading }),
 
       // AI Scenario Simulation initial values & setters

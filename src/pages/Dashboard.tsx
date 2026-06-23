@@ -99,6 +99,7 @@ const OperationsToolbar: React.FC = () => {
 };
 
 
+
 export const Dashboard: React.FC = () => {
   const { currentRole, presentationMode } = useStore();
 

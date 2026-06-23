@@ -90,14 +90,14 @@ export const PresentationWizard: React.FC = () => {
         title: "Sentinel Predictive Analytics",
         description: "Viewing Forest Fire, groundwater levels, and crop risk forecast confidence rates in the AI cockpit.",
         action: () => {
-          setCurrentPage('mission');
+          setCurrentPage('gis-intelligence');
         }
       },
       {
         title: "What-If Scenario Simulation",
         description: "Simulating adjustments to conservation funding and reforestation targets to calculate immediate AI carbon outputs.",
         action: () => {
-          setCurrentPage('mission');
+          setCurrentPage('gis-intelligence');
           setAllSimulationParams({
             treePlantation: 50,
             groundwaterExtraction: 50,
@@ -118,7 +118,7 @@ export const PresentationWizard: React.FC = () => {
         title: "Multi-Layered Map Engine",
         description: "Enabling Hydrology networks and forestry layers on top of base layers.",
         action: () => {
-          setCurrentPage('mission');
+          setCurrentPage('gis-intelligence');
           setGisViewMode('single');
           setActiveBaseMap('satellite');
           if (!activeLayers.includes('hydrology')) toggleLayer('hydrology');
@@ -128,7 +128,7 @@ export const PresentationWizard: React.FC = () => {
         title: "Synchronized Dual View",
         description: "Enabling split-screen satellite and terrain comparing village grids side-by-side.",
         action: () => {
-          setCurrentPage('mission');
+          setCurrentPage('gis-intelligence');
           setGisViewMode('split');
         }
       }
@@ -138,7 +138,7 @@ export const PresentationWizard: React.FC = () => {
         title: "Government Analytics Dashboard",
         description: "Inspecting carbon offset schemes, municipal funds, and pension distributions.",
         action: () => {
-          setCurrentPage('analysis');
+          setCurrentPage('analytics-desk');
           setAnalyticsTab('schemes');
         }
       },
@@ -146,7 +146,7 @@ export const PresentationWizard: React.FC = () => {
         title: "Carbon Offset Incentives Monitor",
         description: "Visualizing state incentive payouts, reforestation targets, and department performances.",
         action: () => {
-          setCurrentPage('analysis');
+          setCurrentPage('analytics-desk');
           setAnalyticsTab('incentives');
         }
       }

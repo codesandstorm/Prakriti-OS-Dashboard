@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../hooks/useStore';
 import { schemeMetrics, budgetMetrics, pensionDistributions, carbonIncentives } from '../services/analyticsMockData';
 
-export const Reports: React.FC = () => {
+export const SchemesGrants: React.FC = () => {
   const { 
     analyticsTab, 
     setAnalyticsTab, 
@@ -96,6 +96,17 @@ export const Reports: React.FC = () => {
           Exit Presentation
         </button>
       )}
+
+      {/* Page Header */}
+      <div className="bg-surface border-b border-outline-variant px-6 py-4 pb-4">
+        <h1 className="text-display-sm font-bold text-on-surface tracking-tight flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-[32px]">payments</span>
+          Schemes & Grants
+        </h1>
+        <p className="text-sm font-mono-data text-on-surface-variant uppercase tracking-widest mt-1">
+          Funding Intelligence & Budget Utilization
+        </p>
+      </div>
 
       {/* Control bar */}
       <section className="bg-white border-b border-outline-variant px-gutter py-3.5 flex flex-wrap gap-4 items-center justify-between shadow-xs">
@@ -505,4 +516,4 @@ export const Reports: React.FC = () => {
   );
 };
 
-export default Reports;
+export default SchemesGrants;
